@@ -365,7 +365,7 @@ The proposed method will be implemented and tested using PX4 simulations, focusi
 
 \section{Model}
 \subsection{Aircraft Model}
-The aircraft model used in the simulation is a tiltrotor eVTOL with the following parameters:
+In simulation, we focus on longitudinal dynamics, including altitude, airspeed, and pitch attitude control. The aircraft model used in the simulation is a tiltrotor eVTOL with the following parameters:
 % \begin{table}[H]
 %     \caption{Aircraft Model Parameters}
 %     \label{tab:aircraft_model_parameters}
@@ -406,7 +406,7 @@ The aircraft model used in the simulation is a tiltrotor eVTOL with the followin
     \centering
     \begin{minipage}{0.45\linewidth}
         \centering
-        \begin{tabular}{|l|c|c|}
+        \begin{tabular}{|l|c|}
             \hline
             \textbf{Symbol} & \textbf{Value} \\ \hline
             \multicolumn{2}{|c|}{\textbf{Physical Properties}} \\ \hline
@@ -419,6 +419,7 @@ The aircraft model used in the simulation is a tiltrotor eVTOL with the followin
             \( b \) & 2.10 m \\ \hline
             \( \bar{c} \) & 0.3571 m \\ \hline
         \end{tabular}
+        \vspace{0.5em} % 표와 캡션 사이의 여백 추가
         \captionof{table}{Physical Properties}
         \label{tab:aircraft_model_parameters}
     \end{minipage}
@@ -433,6 +434,53 @@ The aircraft model used in the simulation is a tiltrotor eVTOL with the followin
     \label{fig:aircraft_model_parameters_and_gazebo}
 \end{figure}
 
+where \(m\) is the mass, \(J_x, J_y, J_z, J_{xz}\) are the moments of inertia, \(S_{\text{wing}}\) is the wing area, \(b\) is the wing span, and \(\bar{c}\) is the mean aerodynamic chord. The aerodynamic coefficients are also provided in Table \ref{tab:aircraft_model_parameters}.
+
+\begin{tabular}{|l|c|}
+    \hline
+    \textbf{Symbol} & \textbf{Value} \\ \hline
+    \multicolumn{2}{|c|}{\textbf{Aerodynamic Coefficients}} \\ \hline
+    \( C_{L_0} \) & 0.0867 \\ \hline
+    \( C_{L_\alpha} \) & 4.02 \\ \hline
+    \( C_{L_q} \) & 3.8954 \\ \hline
+    \( C_{L_{\delta_e}} \) & 0.278 \\ \hline
+    \( C_{D_0} \) & 0.0197 \\ \hline
+    \( C_{D_\alpha} \) & 0.0791 \\ \hline
+    \( C_{D_{\alpha^2}} \) & 1.06 \\ \hline
+    \( C_{D_q} \) & 0.0 \\ \hline
+    \( C_{D_{\delta_e}} \) & 0.0633 \\ \hline
+    \( C_{m_0} \) & 0.0302 \\ \hline
+    \( C_{m_\alpha} \) & -0.126 \\ \hline
+    \( C_{m_q} \) & -1.3047 \\ \hline
+    \( C_{m_{\delta_e}} \) & -0.206 \\ \hline
+\end{tabular} \\
+The aerodynamic coefficients are provided in Table \ref{tab:aircraft_model_parameters}. The lift, drag, and moment coefficients are defined as:
+
+where \(C_{L_0}\) is the lift coefficient at zero angle of attack, \(C_{L_\alpha}\) is the lift coefficient per unit angle of attack, \(C_{L_q}\) is the lift coefficient per unit pitch rate, \(C_{L_{\delta_e}}\) is the lift coefficient per unit elevator deflection, \(C_{D_0}\) is the drag coefficient at zero angle of attack, \(C_{D_\alpha}\) is the drag coefficient per unit angle of attack, \(C_{D_{\alpha^2}}\) is the drag coefficient per unit angle of attack squared, \(C_{D_q}\) is the drag coefficient per unit pitch rate, \(C_{D_{\delta_e}}\) is the drag coefficient per unit elevator deflection, \(C_{m_0}\) is the moment coefficient at zero angle of attack, \(C_{m_\alpha}\) is the moment coefficient per unit angle of attack, \(C_{m_q}\) is the moment coefficient per unit pitch rate, and \(C_{m_{\delta_e}}\) is the moment coefficient per unit elevator deflection.
+\begin{equation}
+    L = \frac{1}{2} \rho v^2 S C_L, \quad D = \frac{1}{2} \rho v^2 S C_D, \quad M = \frac{1}{2} \rho v^2 S C_m
+\end{equation}
+where \(L\) is the lift force, \(D\) is the drag force, \(M\) is the moment, \(\rho\) is the air density, \(v\) is the airspeed, and \(S\) is the wing area.
+
+
+\subsection{Control System}
+The control system for the tiltrotor eVTOL consists of the following components:
+\begin{itemize}
+    \item \textbf{Multicopter Attitude Control}: PID controllers for roll, pitch, and yaw control in Multicopter mode.
+    \item \textbf{Multicopter Altitude Control}: PID controller for altitude control in Multicopter mode.
+    \item \textbf{Fixed-Wing Attitude Control}: PID controller for attitude control in Fixed-Wing mode.
+    \item \textbf{TECS}: Total Energy Control System for airspeed and altitude regulation.
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{control_system_diagram.png}
+    \caption{Control System Diagram}
+    \label{fig:control_system_diagram}
+\end{figure}
+
+The control system diagram is shown in Figure \ref{fig:control_system_diagram}.
+
 In simulation, we focus on longitudinal dynamics, including altitude, airspeed, and pitch attitude control. 
 
 
@@ -442,7 +490,20 @@ In simulation, we focus on longitudinal dynamics, including altitude, airspeed, 
 The proposed neural network-based adaptive TECS gain tuning method was implemented in PX4 simulations to evaluate its performance during the post-transition phase of a tiltrotor eVTOL. The results were compared against the default fixed-gain TECS configuration to assess improvements in altitude stability and recovery time.
 
 \subsection{Simulation Setup}
-The simulation environment used MATLAB Simulink. The aircraft model was integrated with the neural network-based adaptive TECS gain tuning method, replacing the default fixed gains. The simulation focused on the post-transition phase, with the aircraft transitioning to fixed-wing mode at a predetermined airspeed.
+The simulation environment used MATLAB Simulink. The aircraft model was integrated with the neural network-based adaptive TECS gain tuning method, replacing the default fixed gains. The simulation focused on the post-transition phase, with the aircraft transitioning to fixed-wing mode at a predetermined airspeed. The initial condition is from the transition phase, so we consider some parameters in the transition phase to set the condition of transition. The parameters that influence the transition performance are:
+
+\begin{itemize}
+    \item \text{BLENDED\_ASPD}: The airspeed at which the transition from multicopter mode to blended mode begins.
+    \item \text{TRANSITION\_ASPD}: The airspeed at which the transition to fixed-wing mode is completed.
+    \item \text{TILT\_RATE}: The rate at which the rotors tilt during the transition phase.
+\end{itemize}
+
+These parameters are critical in determining the smoothness and stability of the transition phase. For the simulation, the following values were used:
+\begin{itemize}
+    \item BLENDED\_ASPD = 10 m/s
+    \item TRANSITION\_ASPD = 15 m/s
+    \item TILT\_RATE = 15 deg/s
+\end{itemize}
 
 \subsection{Altitude Response}
 Figure \ref{fig:full_altitude} shows the altitude response across the entire simulation period (0-100 sec), while Figure \ref{fig:zoomed_altitude} zooms into the recovery phase immediately following the transition (20-30 sec). The neural network-based TECS demonstrates significantly faster altitude recovery compared to the PX4 fixed-gain TECS.

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2025.1.21)  27 MAR 2025 11:54
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2025.1.21)  27 MAR 2025 12:32
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1188,12 +1188,12 @@ Package epstopdf Info: Source file: <Definitions/logo-mdpi.eps>
 (epstopdf)             Command: <miktex-epstopdf --outfile=Definitions/logo-mdpi-eps-converted-to.pdf Definitions/logo-mdpi.eps>
 (epstopdf)             \includegraphics on input line 205.
 Package epstopdf Info: Output file is already uptodate.
-<Definitions/logo-mdpi-eps-converted-to.pdf, id=115, 74.2775pt x 49.18375pt>
+<Definitions/logo-mdpi-eps-converted-to.pdf, id=119, 74.2775pt x 49.18375pt>
 File: Definitions/logo-mdpi-eps-converted-to.pdf Graphic file (type pdf)
 <use Definitions/logo-mdpi-eps-converted-to.pdf>
 Package pdftex.def Info: Definitions/logo-mdpi-eps-converted-to.pdf  used on input line 205.
 (pdftex.def)             Requested size: 42.96877pt x 28.45274pt.
-<Definitions/logo-orcid.pdf, id=117, 102.3825pt x 102.3825pt>
+<Definitions/logo-orcid.pdf, id=121, 102.3825pt x 102.3825pt>
 File: Definitions/logo-orcid.pdf Graphic file (type pdf)
 <use Definitions/logo-orcid.pdf>
 Package pdftex.def Info: Definitions/logo-orcid.pdf  used on input line 205.
@@ -1228,7 +1228,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [1
 
 {C:/Users/user/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map}{C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/enc/dvips/base/8r.enc} <./Definitions/logo-mdpi-eps-converted-to.pdf> <./Definitions/logo-orcid.pdf>]
-<PX4_VTOL_Control_Structure.png, id=139, 5159.275pt x 2131.965pt>
+<PX4_VTOL_Control_Structure.png, id=143, 5159.275pt x 2131.965pt>
 File: PX4_VTOL_Control_Structure.png Graphic file (type png)
 <use PX4_VTOL_Control_Structure.png>
 Package pdftex.def Info: PX4_VTOL_Control_Structure.png  used on input line 218.
@@ -1252,7 +1252,7 @@ Overfull \hbox (67.53198pt too wide) in paragraph at lines 252--252
 []        \T1/cmtt/m/n/10 Set weight = 1.0 - (airspeed - BLENDED_ASPD) / (TRANSITION_ASPD - BLENDED_ASPD).[] 
  []
 
-<PX4_TECS_Structure.png, id=147, 4496.8pt x 1529.715pt>
+<PX4_TECS_Structure.png, id=151, 4496.8pt x 1529.715pt>
 File: PX4_TECS_Structure.png Graphic file (type png)
 <use PX4_TECS_Structure.png>
 Package pdftex.def Info: PX4_TECS_Structure.png  used on input line 261.
@@ -1276,7 +1276,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
 [4]
-<sigmoid_function_shapes.png, id=169, 247.6452pt x 185.9748pt>
+<sigmoid_function_shapes.png, id=173, 247.6452pt x 185.9748pt>
 File: sigmoid_function_shapes.png Graphic file (type png)
 <use sigmoid_function_shapes.png>
 Package pdftex.def Info: sigmoid_function_shapes.png  used on input line 331.
@@ -1285,7 +1285,7 @@ LaTeX Font Info:    Font shape `U/msa/m/n' will be
 (Font)              scaled to size 9.37807pt on input line 332.
 LaTeX Font Info:    Font shape `U/msb/m/n' will be
 (Font)              scaled to size 9.37807pt on input line 332.
-<neural_network_diagram.png, id=170, 662.475pt x 121.8954pt>
+<neural_network_diagram.png, id=174, 662.475pt x 121.8954pt>
 File: neural_network_diagram.png Graphic file (type png)
 <use neural_network_diagram.png>
 Package pdftex.def Info: neural_network_diagram.png  used on input line 338.
@@ -1302,19 +1302,14 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 [5 <./sigmoid_function_shapes.png> <./neural_network_diagram.png>]
 
 Package caption Warning: The type was already set to `figure'
-(caption)                 on input line 422.
+(caption)                 on input line 423.
 See the caption package documentation for explanation.
 
-<tiltrotor_gazebo.png, id=183, 522.45187pt x 246.1998pt>
+<tiltrotor_gazebo.png, id=187, 522.45187pt x 246.1998pt>
 File: tiltrotor_gazebo.png Graphic file (type png)
 <use tiltrotor_gazebo.png>
-Package pdftex.def Info: tiltrotor_gazebo.png  used on input line 428.
+Package pdftex.def Info: tiltrotor_gazebo.png  used on input line 429.
 (pdftex.def)             Requested size: 177.45863pt x 83.62416pt.
-<full_altitude_plot.png, id=186, 421.575pt x 316.3017pt>
-File: full_altitude_plot.png Graphic file (type png)
-<use full_altitude_plot.png>
-Package pdftex.def Info: full_altitude_plot.png  used on input line 452.
-(pdftex.def)             Requested size: 315.48538pt x 236.70926pt.
 
 
 
@@ -1325,15 +1320,30 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
 [6 <./tiltrotor_gazebo.png>]
-<zoomed_altitude_plot.png, id=195, 421.575pt x 316.3017pt>
+<control_system_diagram.png, id=196, 1317.42188pt x 328.97906pt>
+File: control_system_diagram.png Graphic file (type png)
+<use control_system_diagram.png>
+Package pdftex.def Info: control_system_diagram.png  used on input line 477.
+(pdftex.def)             Requested size: 315.48538pt x 78.78088pt.
+
+
+
+Package fancyhdr Warning: \headheight is too small (12.0pt): 
+(fancyhdr)                Make it at least 24.18796pt, for example:
+(fancyhdr)                \setlength{\headheight}{24.18796pt}.
+(fancyhdr)                You might also make \topmargin smaller:
+(fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
+
+[7 <./control_system_diagram.png>]
+<full_altitude_plot.png, id=208, 421.575pt x 316.3017pt>
+File: full_altitude_plot.png Graphic file (type png)
+<use full_altitude_plot.png>
+Package pdftex.def Info: full_altitude_plot.png  used on input line 513.
+(pdftex.def)             Requested size: 315.48538pt x 236.70926pt.
+<zoomed_altitude_plot.png, id=209, 421.575pt x 316.3017pt>
 File: zoomed_altitude_plot.png Graphic file (type png)
 <use zoomed_altitude_plot.png>
-Package pdftex.def Info: zoomed_altitude_plot.png  used on input line 459.
-(pdftex.def)             Requested size: 315.48538pt x 236.70926pt.
-<flight_state_plot.png, id=197, 421.575pt x 316.3017pt>
-File: flight_state_plot.png Graphic file (type png)
-<use flight_state_plot.png>
-Package pdftex.def Info: flight_state_plot.png  used on input line 469.
+Package pdftex.def Info: zoomed_altitude_plot.png  used on input line 520.
 (pdftex.def)             Requested size: 315.48538pt x 236.70926pt.
 
 
@@ -1344,16 +1354,21 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
-[7 <./full_altitude_plot.png (PNG copy)> <./zoomed_altitude_plot.png (PNG copy)>]
-<full_airspeed_plot.png, id=206, 421.575pt x 316.3017pt>
+[8 <./full_altitude_plot.png (PNG copy)> <./zoomed_altitude_plot.png (PNG copy)>]
+<flight_state_plot.png, id=217, 421.575pt x 316.3017pt>
+File: flight_state_plot.png Graphic file (type png)
+<use flight_state_plot.png>
+Package pdftex.def Info: flight_state_plot.png  used on input line 530.
+(pdftex.def)             Requested size: 315.48538pt x 236.70926pt.
+<full_airspeed_plot.png, id=220, 421.575pt x 316.3017pt>
 File: full_airspeed_plot.png Graphic file (type png)
 <use full_airspeed_plot.png>
-Package pdftex.def Info: full_airspeed_plot.png  used on input line 479.
+Package pdftex.def Info: full_airspeed_plot.png  used on input line 540.
 (pdftex.def)             Requested size: 315.48538pt x 236.70926pt.
-<zoomed_airspeed_plot.png, id=207, 421.575pt x 316.18124pt>
+<zoomed_airspeed_plot.png, id=221, 421.575pt x 316.18124pt>
 File: zoomed_airspeed_plot.png Graphic file (type png)
 <use zoomed_airspeed_plot.png>
-Package pdftex.def Info: zoomed_airspeed_plot.png  used on input line 486.
+Package pdftex.def Info: zoomed_airspeed_plot.png  used on input line 547.
 (pdftex.def)             Requested size: 315.48538pt x 236.61911pt.
 
 
@@ -1364,7 +1379,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
-[8 <./flight_state_plot.png (PNG copy)> <./full_airspeed_plot.png (PNG copy)>]
+[9 <./flight_state_plot.png (PNG copy)> <./full_airspeed_plot.png (PNG copy)>]
 
 
 Package fancyhdr Warning: \headheight is too small (12.0pt): 
@@ -1373,8 +1388,8 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
-[9 <./zoomed_airspeed_plot.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 584--584
+[10 <./zoomed_airspeed_plot.png (PNG copy)>]
+Underfull \hbox (badness 10000) in paragraph at lines 645--645
 
  []
 
@@ -1387,7 +1402,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
-[10]
+[11]
 
 Package natbib Warning: There were undefined citations.
 
@@ -1400,7 +1415,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                You might also make \topmargin smaller:
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
-[11] 
+[12] 
 enddocument/afterlastpage (AED): lastpage setting LastPage.
 (template.aux)
  ***********
@@ -1412,20 +1427,20 @@ L3 programming layer <2024-12-25>
 LaTeX Warning: There were multiply-defined labels.
 
 Package rerunfilecheck Info: File `template.out' has not changed.
-(rerunfilecheck)             Checksum: 297164AB6CCF59955B631BD250CFFB92;3846.
+(rerunfilecheck)             Checksum: 66A6002BCF991E27556BA7C3B3443557;3976.
  ) 
 Here is how much of TeX's memory you used:
- 34375 strings out of 473535
- 644397 string characters out of 5715419
+ 34404 strings out of 473535
+ 644878 string characters out of 5715419
  1121893 words of memory out of 5000000
- 56518 multiletter control sequences out of 15000+600000
- 636800 words of font info for 401 fonts, out of 8000000 for 9000
+ 56528 multiletter control sequences out of 15000+600000
+ 637511 words of font info for 411 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  123i,16n,135p,5086b,766s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\user\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tctt1000.pk> <C:\Users\user\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1000.pk> <C:\Users\user\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi375\ecss0800.pk><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/mathpazo/fplmr.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/mathpazo/fplmri.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/urw/palatino/uplb8a.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/urw/palatino/uplr8a.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on template.pdf (11 pages, 1043437 bytes).
+Output written on template.pdf (12 pages, 1148595 bytes).
 PDF statistics:
- 359 PDF objects out of 1000 (max. 8388607)
- 63 named destinations out of 1000 (max. 500000)
- 111385 words of extra memory for PDF output out of 128383 (max. 10000000)
+ 375 PDF objects out of 1000 (max. 8388607)
+ 67 named destinations out of 1000 (max. 500000)
+ 111398 words of extra memory for PDF output out of 128383 (max. 10000000)
 
