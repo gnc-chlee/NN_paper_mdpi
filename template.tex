@@ -201,6 +201,7 @@ $^{2}$ \quad Department of Drone and Robotics, Sejong Cyber University; sjnbae@g
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{subcaption} % Required for the subfigure environment
+\usepackage{adjustbox} % minipage 정렬을 위해 추가
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 
@@ -438,11 +439,11 @@ where \(m\) is the mass, \(J_x, J_y, J_z, J_{xz}\) are the moments of inertia, \
 
 \begin{table}[H]
     \centering
-    \caption{Aerodynamic Coefficients of the Aircraft Model}
     \label{tab:aero_coefficients}
     % 공통 제목
     \textbf{Aerodynamic Coefficients} \\ % 공통 제목을 tabular 밖에서 텍스트로
     \vspace{0.5cm} % 제목과 표 사이 간격 조정
+    \begin{adjustbox}{valign=t}
     \begin{minipage}[t]{0.45\textwidth} % [t]로 위쪽 정렬
         \centering
         \begin{tabular}{|l|c|}
@@ -457,7 +458,9 @@ where \(m\) is the mass, \(J_x, J_y, J_z, J_{xz}\) are the moments of inertia, \
             \( C_{D_{\alpha^2}} \) & 1.06 \\ \hline
         \end{tabular}
     \end{minipage}
+    \end{adjustbox}
     \hfill
+    \begin{adjustbox}{valign=t}
     \begin{minipage}[t]{0.45\textwidth} % [t]로 위쪽 정렬
         \centering
         \begin{tabular}{|l|c|}
@@ -469,8 +472,11 @@ where \(m\) is the mass, \(J_x, J_y, J_z, J_{xz}\) are the moments of inertia, \
             \( C_{m_\alpha} \) & -0.126 \\ \hline
             \( C_{m_q} \) & -1.3047 \\ \hline
             \( C_{m_{\delta_e}} \) & -0.206 \\ \hline
+            \( \) & \( \) \\ \hline % 높이 맞추기 위해 빈 행 추가
         \end{tabular}
     \end{minipage}
+    \end{adjustbox}
+    \caption{Aerodynamic Coefficients of the Aircraft Model}
 \end{table}
 The aerodynamic coefficients are provided in Table \ref{tab:aircraft_model_parameters}. The lift, drag, and moment coefficients are defined as:
 
@@ -567,6 +573,55 @@ Figure \ref{fig:full_airspeed} presents the airspeed response during the simulat
     \label{fig:zoomed_airspeed}
 \end{figure}
 
+\subsection{Energy Rate Error Response}
+The energy rate error response is shown in Figure \ref{fig:ste_rate_error},\ref{fig:sbe_rate_error} . The neural network-based TECS demonstrates faster error reduction, leading to improved altitude and airspeed recovery and stability.
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{ste_rate_error_plot.png}
+        \captionof{figure}{Specific Total Energy Rate Error (STE)}
+        \label{fig:ste_rate_error}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{sbe_rate_error_plot.png}
+        \captionof{figure}{Specific Balance Energy Rate Error (SBE)}
+        \label{fig:sbe_rate_error}
+    \end{minipage}
+\end{figure}
+
+\subsection{TECS Control Outputs}
+Figure \ref{fig:thrust_output} and Figure \ref{fig:pitch_output} present the thrust and pitch outputs of the TECS control system, respectively. These plots illustrate the control inputs applied post-transition, highlighting the neural network's ability to adjust these outputs for improved stability.
+
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{thrust_output_plot.png}
+        \captionof{figure}{Thrust Output}
+        \label{fig:thrust_output}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{pitch_output_plot.png}
+        \captionof{figure}{Pitch Output}
+        \label{fig:pitch_output}
+    \end{minipage}
+\end{figure}
+
+
+\subsection{Sensitive Analysis}
+The neural network-based adaptive TECS gain tuning method was tested under various conditions to evaluate its robustness and sensitivity to different flight states. The results demonstrate consistent performance across different scenarios, highlighting the method's adaptability and reliability.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{sensitive_analysis.png}
+    \caption{Sensitive Analysis: Neural Network TECS Performance under Different Flight States.}
+    \label{fig:sensitive_analysis}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
@@ -637,8 +692,8 @@ Written informed consent for publication must be obtained from participating pat
 %\useofartificialintelligence{Please describe in detail any and all uses of artificial intelligence (AI) or AI-assisted tools used in the preparation of the manuscript. This may include, but is not limited to, language translation, language editing and grammar, or generating text. Alternatively, please state that “AI or AI-assisted tools were not used in drafting any aspect of this manuscript”.}
 
 \acknowledgments{This work was supported by Future Space Navigation \& Satellite Research Center through the National Research Foundation funded by the Ministry of Science and ICT, the Republic of Korea (2022M1A3C2074404). \\
-This research was supported by Basic Science Research Program through the National Research Foundation of Korea(NRF) funded by the Ministry of Education(2020R1A6A1A03038540)
-}
+This research was supported by Basic Science Research Program through the National Research Foundation of Korea(NRF) funded by the Ministry of Education(2020R1A6A1A03038540) \\
+This work was supported by the IITP(Institute of Information \& Coummunications Technology Planning \& Evaluation)-ITRC(Information Technology Research Center) grant funded by the Korea government(Ministry of Science and ICT)(IITP-2025-RS-2024-00437494). }
 
 
 \conflictsofinterest{Declare conflicts of interest or state ``The authors declare no conflicts of interest.'' Authors must identify and declare any personal circumstances or interest that may be perceived as inappropriately influencing the representation or interpretation of reported research results. Any role of the funders in the design of the study; in the collection, analyses or interpretation of data; in the writing of the manuscript; or in the decision to publish the results must be declared in this section. If there is no role, please state ``The funders had no role in the design of the study; in the collection, analyses, or interpretation of data; in the writing of the manuscript; or in the decision to publish the results''.} 
