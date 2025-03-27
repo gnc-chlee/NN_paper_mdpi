@@ -196,7 +196,11 @@ $^{2}$ \quad Department of Drone and Robotics, Sejong Cyber University; sjnbae@g
 % \item Second bullet.
 % \end{itemize}
 %}
-
+\usepackage{tikz}
+\usepackage[utf8]{inputenc}
+\usepackage{float}
+\usepackage{graphicx}
+\usepackage{subcaption} % Required for the subfigure environment
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{document}
 
@@ -217,8 +221,40 @@ The paper is structured as follows: Section 2 analyzes the transition phase of o
 \end{figure}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Section 2
-\section{Analysis of Open-Source Autopilot Transition Phase}
+\section{Literature Review}
+\subsection{Analysis of Open-Source Autopilot Transition Phase}
 Open-source autopilot systems, such as PX4, support a variety of unmanned aerial vehicles (UAVs), including tiltrotor eVTOLs. However, their transition logic from hover to forward flight relies on simplified strategies that inadequately address the complex dynamics of hybrid aircraft.
+
+\subsubsection{Transition Phase Operation}
+The transition phase in open-source autopilots involves two key mechanisms:
+\begin{itemize}
+    \item \text{Open Loop Tilt Angle Control} \\
+    The front rotor of the tilt rotor tilts to a certain angle to achieve airspeed during the transition. Once the transition starting speed (BLENDED\_ASPD) is reached, the transition algorithm begins. Until transition completion airspeed, tilt angle keep particular tilt angle(VT\_TILT\_TRANS). When the transition completion speed (TRANSITION\_ASPD) is reached, the switch to fixed-wing mode starts.
+    \item \text{Linear Weighting of Control Outputs} \\
+    At this point, the outputs for attitude control of the fixed-wing and rotary-wing are divided based on the current airspeed with weighting applied. Once the transition completion speed (TRANSITION\_ASPD) is reached, the output of the fixed-wing control takes over completely.
+\end{itemize}
+
+\begin{verbatim}
+    Start in Multicopter Mode.
+    Tilt the rotors forward to 15°.
+    If airspeed < BLENDED_ASPD m/s:
+        Maintain Multicopter Mode.
+    Begin Transition Mode P1:
+        Set weight = 1.0 - (airspeed - BLENDED_ASPD) / (TRANSITION_ASPD - BLENDED_ASPD).
+        Distribute attitude control based on the weight.
+        Set thrust to the TRANSITION_THRUST
+        Tilt the rotors forward to 45°.
+    If airspeed < TRANSITION_ASPD m/s:
+        Maintain Transition Mode P1.
+    Begin Transition Mode P2:
+        Tilt the rotors forward to 90°.
+    Switch to Fixed-Wing Mode.
+\end{verbatim}
+
+In the transition phase, the autopilot does not consider the aircraft's nonlinear dynamics, such as rotor tilt angle changes, which can lead to altitude loss and instability post-transition.
+
+\subsection{Total Energy Control System (TECS)}
+The Total Energy Control System (TECS) is a control strategy used in aircraft to manage their total energy, which consists of potential energy (\(E_P = mgh\)) and kinetic energy (\(E_K = \frac{1}{2}mv^2\)). TECS regulates airspeed and altitude by coordinating throttle and pitch inputs: throttle adjusts the total energy, while pitch controls the distribution of energy between altitude and speed.
 
 \begin{figure}[H]
     \centering
@@ -226,233 +262,237 @@ Open-source autopilot systems, such as PX4, support a variety of unmanned aerial
     \caption{PX4 TECS Control Structure}
     \label{fig:enter-label}
 \end{figure}
+In the Open-Source autopilot framework, TECS remains inactive during the transition phase of tiltrotor eVTOLs and only activates once the aircraft fully enters fixed-wing mode.
 
-
-\subsection{Transition Phase Operation}
-The transition phase in open-source autopilots involves two key mechanisms:
+\subsubsection{TECS Control Structure}
+TECS manages two primary functions:
 \begin{itemize}
-    \item \textbf{Open-Loop Tilt Angle Control:} The autopilot tilts the rotors to a predefined angle without real-time feedback, assuming a smooth transition but lacking adaptability to aerodynamic changes or disturbances.
-    \item \textbf{Linear Weighting of Control Outputs:} Control authority shifts from rotor-based to fixed-wing surfaces based on airspeed, with linear weighting applied. The transition completes when a predefined speed (e.g., 15 m/s) is reached, activating TECS in fixed-wing mode to manage airspeed and altitude.
+    \item \text{Total Energy Control}: Adjusts throttle to regulate the total specific energy rate (\(\dot{E}_T = \dot{E}_P + \dot{E}_K\)), where:
+    \begin{itemize}
+        \item \(\dot{E}_P = \dot{h}g\) (potential energy rate, linked to altitude change),
+        \item \(\dot{E}_K = v\dot{v}\) (kinetic energy rate, linked to speed change).
+    \end{itemize}
+    \item \text{Balance Energy Control}: Adjusts pitch to control the balance specific energy rate (\(\dot{E}_B = \dot{E}_P - \dot{E}_K\)), ensuring proper energy distribution between altitude and airspeed.
 \end{itemize}
 
-\subsection{Limitations of TECS Implementation}
-The transition strategy and subsequent TECS activation present several challenges:
+The setpoints for these energy rates are defined as:
+\begin{equation}
+    \dot{E}_{T_{\text{sp}}} = \dot{h}_{\text{sp}}g + v_a\dot{v}_{a_{\text{sp}}}, \quad \dot{E}_{B_{\text{sp}}} = \dot{h}_{\text{sp}}g - v_a\dot{v}_{a_{\text{sp}}}
+\end{equation}
+where \(\dot{h}_{\text{sp}}\) is the desired altitude rate, \(v_a\) is the current airspeed, and \(\dot{v}_{a_{\text{sp}}}\) is the desired airspeed rate.
+
+The control outputs—thrust (\(\delta_{\text{sp}}\)) and pitch (\(\theta_{\text{sp}}\))—are calculated as:
+\begin{equation}
+    \delta_{\text{sp}} = \left( D_T (\dot{E}_{T_{\text{sp}}} - \dot{E}_T) + I_T \int (\dot{E}_{T_{\text{sp}}} - \dot{E}_T) \, dt + T_{\text{cruise}} \right) \frac{1}{\dot{E}_{T,\text{max}} - \dot{E}_{T,\text{min}}}
+\end{equation}
+\begin{equation}
+    \theta_{\text{sp}} = \left( D_B (\dot{E}_{B_{\text{sp}}} - \dot{E}_B) + I_B \int (\dot{E}_{B_{\text{sp}}} - \dot{E}_B) \, dt + ff_B \dot{E}_{B_{\text{sp}}} \right) \frac{1}{v_a g}
+\end{equation}
+where:
 \begin{itemize}
-    \item \textbf{Inadequate Dynamic Modeling During Transition:} The open-loop tilt control and linear weighting neglect the aircraft's nonlinear dynamics, such as rotor-wing interactions, leading to uncontrolled altitude loss. 
-    While airspeed reaches the transition threshold, altitude control is absent, resulting in subsidence.
-
-
-    \item \textbf{Fixed-Gain TECS Limitations:} After forward transition, TECS uses fixed gains to compute control commands. 
-    These fixed gains fail to adapt to rapid state changes or accumulated errors, hindering effective altitude and airspeed correction.
+    \item \(D_T, I_T\): Derivative and integral gains for specific total energy rate,
+    \item \(D_B, I_B\): Derivative and integral gains for specific balance energy rate,
+    \item \(ff_B\): Feedforward gain,
+    \item \(T_{\text{cruise}}\): Cruise thrust,
+    \item \(\dot{E}_{T,\text{max}} = g \times \text{max\_climb\_rate}\), \(\dot{E}_{T,\text{min}} = g \times \text{max\_descent\_rate}\): Limits on energy rates.
 \end{itemize}
-TECS is Total Energy Control System 
-The specific potential energy rate, defined as \(\text{SER}_{\text{potential}} = g \dot{h}\) (where \(g\) is gravitational acceleration and \(\dot{h}\) is altitude rate), remains unmanaged during this phase:
-    \begin{equation}
-    \text{SER}_{\text{potential}} = g \dot{h}
-    \end{equation}
+
+For tiltrotors, the transition phase introduces unique dynamics, such as rotor tilt angle changes, which affect the balance between \(\dot{E}_P\) and \(\dot{E}_K\). Fixed gains, as used in PX4’s default TECS, fail to adapt to these rapid changes, resulting in delayed altitude recovery and instability post-transition.
+
+\section{Methodology}
+\subsection{Neural Network-Based Gain Tuning Methodology}
+To overcome the limitations of static TECS gains, this study proposes a neural network-based approach for real-time gain tuning, specifically tailored to the post-transition phase of tiltrotor eVTOLs. The methodology dynamically adjusts the proportional (\(K_p\)) and integral (\(K_i\)) gains of TECS based on the aircraft’s flight state, mitigating altitude loss and improving stability immediately after the transition to fixed-wing mode.
+
+\subsubsection{Why Use a Neural Network?}
+Immediately after the transition to fixed-wing mode, the aircraft experiences residual effects from the transition phase, such as aerodynamic shifts and thrust vector changes. Fixed gains cannot adequately respond to these variations, leading to poor altitude control. A neural network enables real-time adaptation by learning and adjusting gains based on current errors (e.g., altitude and energy rate deviations), offering a robust solution for open-source platforms like PX4.
+
+\subsubsection{Neural Network Design}
+The proposed neural network is a simple two-layer feedforward network:
+\begin{itemize}
+    \item \textbf{Inputs}:
+    \begin{itemize}
+        \item Proportional error: \(e_p(k) = \dot{E}_{\text{sp}}(k) - \dot{E}(k)\),
+        \item Integral error: \(e_i(k) = \sum \int e_p(k) \, dt\).
+    \end{itemize}
+    \item \textbf{Outputs}:
+    \begin{itemize}
+        \item Adjusted gains \(K_p(k)\) and \(K_i(k)\), computed using a sigmoid activation function:
+        \begin{equation}
+            f(x) = \frac{2(1 - e^{-x \cdot Y_g})}{Y_g (1 + e^{-x \cdot Y_g})}
+        \end{equation}
+        where \(x(k) = K_p(k)e_p(k) + K_i(k)e_i(k)\), and \(Y_g\) is a tuning parameter shaping the sigmoid curve in figure \ref{fig:sigmoid_function_shapes}.
+    \end{itemize}
+\end{itemize}
+
+The control input \(u(k) = f(x)\) drives the TECS outputs (thrust and pitch), with gains updated dynamically.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{sigmoid_function_shapes.png}
+    \caption{Sigmoid function shapes for different \(Y_g\) values}
+    \label{fig:sigmoid_function_shapes}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{neural_network_diagram.png}
+    \caption{Neural network block diagram for adaptive TECS gain tuning}
+    \label{fig:neural_network_block_diagram}
+\end{figure}
+
+\subsection{Tuning Process}
+The gains are tuned using the steepest descent method to minimize the cost function:
+\begin{equation}
+    J(k) = \frac{1}{2}(\dot{E}_{\text{sp}}(k) - \dot{E}(k))^2
+\end{equation}
+
+The update rules are:
+\begin{equation}
+    K_p(k+1) = K_p(k) - \eta_p \frac{\partial J(k)}{\partial K_p(k)}, \quad K_i(k+1) = K_i(k) - \eta_i \frac{\partial J(k)}{\partial K_i(k)}
+\end{equation}
+with partial derivatives:
+\begin{equation}
+    \frac{\partial J(k)}{\partial K_p(k)} = -e_p(k) \cdot f'(x(k)) \cdot e_p(k), \quad \frac{\partial J(k)}{\partial K_i(k)} = -e_p(k) \cdot f'(x(k)) \cdot e_i(k)
+\end{equation}
+where \(f'(x) = \frac{4e^{-x \cdot Y_g}}{(1 + e^{-x \cdot Y_g})^2}\), and \(\eta_p\), \(\eta_i\) are learning rates.
+
+This method replaces static gains with a dynamic, state-dependent tuning mechanism, ensuring computational efficiency for real-time implementation on autopilot systems.
+
+
+\subsection{Implementation and Validation}
+The proposed method will be implemented and tested using PX4 simulations, focusing on the post-transition phase in fixed-wing mode. Performance will be evaluated by comparing altitude stability and recovery time against the default fixed-gain TECS.
+
+
+\section{Model}
+\subsection{Aircraft Model}
+The aircraft model used in the simulation is a tiltrotor eVTOL with the following parameters:
+% \begin{table}[H]
+%     \caption{Aircraft Model Parameters}
+%     \label{tab:aircraft_model_parameters}
+%     \small
+%     \begin{tabular}{|l|c|c|}
+%     \hline
+%     \textbf{Parameter} & \textbf{Symbol} & \textbf{Value} \\ \hline
     
-   \begin{equation}
-    \text{SER}_{\text{total}} = \text{SER}_{\text{kinetic}} + \text{SER}_{\text{potential}} = v \dot{v} + g \dot{h}
-    \end{equation}
-    where \(v\) is airspeed and \(\dot{v}\) is airspeed rate. Errors (e.g., altitude loss) accumulated during transition persist until TECS engages, delaying corrective action.
+%     \multicolumn{3}{|c|}{\textbf{Physical Properties}} \\ \hline
+%     Mass & \( m \) & 5.22 kg \\ \hline
+%     Inertia (\( J_x \)) & \( J_x \) & 1.229 kg·m² \\ \hline
+%     Inertia (\( J_y \)) & \( J_y \) & 0.1702 kg·m² \\ \hline
+%     Inertia (\( J_z \)) & \( J_z \) & 0.8808 kg·m² \\ \hline
+%     Inertia (\( J_{xz} \)) & \( J_{xz} \) & 0.9343 kg·m² \\ \hline
+%     Wing Area & \( S_{\text{wing}} \) & 0.75 m² \\ \hline
+%     Wing Span & \( b \) & 2.10 m \\ \hline
+%     Mean Aerodynamic Chord & \( c \) & 0.3571 m \\ \hline
+    
+%     \multicolumn{3}{|c|}{\textbf{Aerodynamic Coefficients}} \\ \hline
+%     Lift Coefficient (zero angle) & \( C_{L_0} \) & 0.0867 \\ \hline
+%     Lift Coefficient (alpha) & \( C_{L_\alpha} \) & 4.02 \\ \hline
+%     Lift Coefficient (q) & \( C_{L_q} \) & 3.8954 \\ \hline
+%     Lift Coefficient (delta\_e) & \( C_{L_{\delta_e}} \) & 0.278 \\ \hline
+%     Drag Coefficient (zero angle) & \( C_{D_0} \) & 0.0197 \\ \hline
+%     Drag Coefficient (alpha) & \( C_{D_\alpha} \) & 0.0791 \\ \hline
+%     Drag Coefficient (alpha²) & \( C_{D_{\alpha^2}} \) & 1.06 \\ \hline
+%     Drag Coefficient (q) & \( C_{D_q} \) & 0.0 \\ \hline
+%     Drag Coefficient (delta\_e) & \( C_{D_{\delta_e}} \) & 0.0633 \\ \hline
+%     Moment Coefficient (zero angle) & \( C_{m_0} \) & 0.0302 \\ \hline
+%     Moment Coefficient (alpha) & \( C_{m_\alpha} \) & -0.126 \\ \hline
+%     Moment Coefficient (q) & \( C_{m_q} \) & -1.3047 \\ \hline
+%     Moment Coefficient (delta\_e) & \( C_{m_{\delta_e}} \) & -0.206 \\ \hline
 
-TECS method can written by : 
-\begin{equation}
-\delta_{\mathrm{sp}} = \left( D (\dot{E}_{T_{\mathrm{sp}}} - \dot{E_T}) + I \int (\dot{E}_{T_{\mathrm{sp}}} - \dot{E_T}) \, dt + T_{\mathrm{cruise}} \right) \frac{1}{\dot{E}_{T,\mathrm{max}} - \dot{E}_{T,\mathrm{min}}}
-\end{equation}
-\begin{equation}
-\delta_{\mathrm{sp}} = \left\{ D \left( \dot{E}_{B_{\mathrm{sp}}} - \dot{E}_{B} \right) + I \int \left( \dot{E}_{B_{\mathrm{sp}}} - \dot{E}_{B} \right) \, dt \right\} \frac{1}{v_a \cdot g}
-\end{equation}
+%     \end{tabular}
+% \end{table}
 
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\linewidth}
+        \centering
+        \begin{tabular}{|l|c|c|}
+            \hline
+            \textbf{Symbol} & \textbf{Value} \\ \hline
+            \multicolumn{2}{|c|}{\textbf{Physical Properties}} \\ \hline
+            \( m \) & 5.22 kg \\ \hline
+            \( J_x \) & 1.229 kg·m² \\ \hline
+            \( J_y \) & 0.1702 kg·m² \\ \hline
+            \( J_z \) & 0.8808 kg·m² \\ \hline
+            \( J_{xz} \) & 0.9343 kg·m² \\ \hline
+            \( S_{\text{wing}} \) & 0.75 m² \\ \hline
+            \( b \) & 2.10 m \\ \hline
+            \( \bar{c} \) & 0.3571 m \\ \hline
+        \end{tabular}
+        \captionof{table}{Physical Properties}
+        \label{tab:aircraft_model_parameters}
+    \end{minipage}
+    \hfill % 표와 그림 사이에 여백 추가
+    \begin{minipage}{0.45\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{tiltrotor_gazebo.png}
+        \captionof{figure}{Tiltrotor Gazebo model}
+        \label{fig:tiltrotor_gazebo}
+    \end{minipage}
+    \caption{Aircraft Model Parameters and Tiltrotor Gazebo Model}
+    \label{fig:aircraft_model_parameters_and_gazebo}
+\end{figure}
 
+In simulation, we focus on longitudinal dynamics, including altitude, airspeed, and pitch attitude control. 
 
- where \(\text{SER}_{\text{dist}} = v \dot{v} - g \dot{h}\) is the specific energy distribution rate, \(k_{\theta}\) is the proportional gain, and \(k_{I\theta}\) is the integral gain.
-
-\subsection{Proposed Improvement: Neural Network-Based Adaptive TECS}
-Since TECS is inactive during the transition phase, the proposed approach focuses on enhancing its performance post-transition. A simple neural network dynamically adjusts TECS gains based on the aircraft’s state (e.g., altitude error, airspeed, pitch rate), enabling faster correction of accumulated errors. This method aims to minimize altitude loss and stabilize flight parameters after transition, offering a practical solution to the limitations of fixed-gain TECS in open-source autopilots.
-
-The following sections will detail the adaptive gain tuning methodology, present simulation results, and discuss implications for tiltrotor eVTOL control.
-
-
-\section{Neural Network-Based Gain Tuning Methodology}
-The proposed methodology leverages a simple neural network to enable real-time adaptive tuning of TECS gains, addressing the dynamic challenges of tiltrotor eVTOLs during the transition phase. This approach aims to enhance control performance by dynamically adjusting gains based on the aircraft's current flight state, thereby mitigating altitude loss and improving stability.
-
-The methodology consists of the following steps:
-
-This approach differs from traditional TECS by replacing static gains with a dynamic, state-dependent tuning mechanism. The simplicity of the neural network ensures computational efficiency, making it feasible for real-time implementation on resource-constrained autopilot systems. The methodology builds on prior work in adaptive control~\cite{bosworth2016} and neural network applications in flight control~\cite{wang2023}, tailoring these concepts to the unique needs of tiltrotor eVTOLs.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Results}
+\section{Simulation Results}
+The proposed neural network-based adaptive TECS gain tuning method was implemented in PX4 simulations to evaluate its performance during the post-transition phase of a tiltrotor eVTOL. The results were compared against the default fixed-gain TECS configuration to assess improvements in altitude stability and recovery time.
 
-This section may be divided by subheadings. It should provide a concise and precise description of the experimental results, their interpretation as well as the experimental conclusions that can be drawn.
-\subsection{Subsection}
-\subsubsection{Subsubsection}
+\subsection{Simulation Setup}
+The simulation environment used MATLAB Simulink. The aircraft model was integrated with the neural network-based adaptive TECS gain tuning method, replacing the default fixed gains. The simulation focused on the post-transition phase, with the aircraft transitioning to fixed-wing mode at a predetermined airspeed.
 
-Bulleted lists look like this:
-\begin{itemize}
-\item	First bullet;
-\item	Second bullet;
-\item	Third bullet.
-\end{itemize}
-
-Numbered lists can be added as follows:
-\begin{enumerate}
-\item	First item; 
-\item	Second item;
-\item	Third item.
-\end{enumerate}
-
-The text continues here.
-
-\subsection{Figures, Tables and Schemes}
-
-All figures and tables should be cited in the main text as Figure~\ref{fig1}, Table~\ref{tab1}, etc.
+\subsection{Altitude Response}
+Figure \ref{fig:full_altitude} shows the altitude response across the entire simulation period (0-100 sec), while Figure \ref{fig:zoomed_altitude} zooms into the recovery phase immediately following the transition (20-30 sec). The neural network-based TECS demonstrates significantly faster altitude recovery compared to the PX4 fixed-gain TECS.
 
 \begin{figure}[H]
-%\isPreprints{\centering}{} % Only used for preprints
-\includegraphics[width=7 cm]{Definitions/logo-mdpi}
-\caption{This is a figure. Schemes follow the same formatting.\label{fig1}}
-\end{figure}   
-\unskip
+    \centering
+    \includegraphics[width=0.8\textwidth]{full_altitude_plot.png}
+    \caption{Altitude Response (0-100 sec): Neural Network TECS (Blue) vs. PX4 TECS (Green), Altitude Command (Red Dashed).}
+    \label{fig:full_altitude}
+\end{figure}
 
-\begin{table}[H] 
-%\small % Change table font size
-\caption{This is a table caption. Tables should be placed in the main text near to the first time they are~cited.\label{tab1}}
-%\isPreprints{\centering}{} % Only used for preprints
-\begin{tabularx}{\textwidth}{CCC}
-\toprule
-\textbf{Title 1}	& \textbf{Title 2}	& \textbf{Title 3}\\
-\midrule
-Entry 1		& Data			& Data\\
-Entry 2		& Data			& Data \textsuperscript{1}\\
-\bottomrule
-\end{tabularx}
-
-\noindent{\footnotesize{\textsuperscript{1} Tables may have a footer.}}
-\end{table}
-
-The text continues here (Figure~\ref{fig2} and Table~\ref{tab2}).
-
-% Example of a figure that spans the whole page width and with subfigures. The same concept works for tables, too.
 \begin{figure}[H]
-\centering
-%\isPreprints{}{% This command is only used for ``preprints''.
-\begin{adjustwidth}{-\extralength}{0cm}
-%} % If the paper is ``preprints'', please uncomment this parenthesis.
-\subfloat[\centering]{\includegraphics[width=7.7cm]{Definitions/logo-mdpi}}
-\hfill
-\subfloat[\centering]{\includegraphics[width=7.7cm]{Definitions/logo-mdpi}}\\
-\subfloat[\centering]{\includegraphics[width=7.7cm]{Definitions/logo-mdpi}}
-\hfill
-\subfloat[\centering]{\includegraphics[width=7.7cm]{Definitions/logo-mdpi}}
-%\isPreprints{}{% This command is only used for ``preprints''.
-\end{adjustwidth}
-%} % If the paper is ``preprints'', please uncomment this parenthesis.
-\caption{This is a wide figure. Schemes follow the same formatting. If there are multiple panels, they should be listed as: (\textbf{a}) Description of what is contained in the first panel. (\textbf{b}) Description of what is contained in the second panel. (\textbf{c}) Description of what is contained in the third panel. (\textbf{d}) Description of what is contained in the fourth panel. Figures should be placed in the main text near to the first time they are cited. A caption on a single line should be centered.\label{fig2}}
-\end{figure} 
+    \centering
+    \includegraphics[width=0.8\textwidth]{zoomed_altitude_plot.png}
+    \caption{Zoomed Recovery Phase (20-30 sec): Neural Network TECS (Blue) vs. PX4 TECS (Green), Altitude Command (Red Dashed).}
+    \label{fig:zoomed_altitude}
+\end{figure}
 
-\begin{table}[H]
-\caption{This is a wide table.\label{tab2}}
-%\isPreprints{\centering}{% This command is only used for ``preprints''.
-	\begin{adjustwidth}{-\extralength}{0cm}
-%} % If the paper is ``preprints'', please uncomment this parenthesis.
-%\isPreprints{\begin{tabularx}{\textwidth}{CCCC}}{% This command is only used for ``preprints''.
-		\begin{tabularx}{\fulllength}{CCCC}
-%} % If the paper is ``preprints'', please uncomment this parenthesis.
-			\toprule
-			\textbf{Title 1}	& \textbf{Title 2}	& \textbf{Title 3}     & \textbf{Title 4}\\
-			\midrule
-\multirow[m]{3}{*}{Entry 1 *}	& Data			& Data			& Data\\
-			  	                   & Data			& Data			& Data\\
-			             	      & Data			& Data			& Data\\
-                   \midrule
-\multirow[m]{3}{*}{Entry 2}    & Data			& Data			& Data\\
-			  	                  & Data			& Data			& Data\\
-			             	     & Data			& Data			& Data\\
-			\bottomrule
-		\end{tabularx}
-%		\isPreprints{}{% This command is only used for ``preprints''.
-	\end{adjustwidth}
-%} % If the paper is ``preprints'', please uncomment this parenthesis.
-	\noindent{\footnotesize{* Tables may have a footer.}}
-\end{table}
+\subsection{Flight Mode}
+In Figure \ref{fig:flight_state}, we illustrate the transition from multicopter mode to fixed-wing mode, where TECS is activated in fixed-wing mode.
 
-%\begin{listing}[H]
-%\caption{Title of the listing}
-%\rule{\columnwidth}{1pt}
-%\raggedright Text of the listing. In font size footnotesize, small, or normalsize. Preferred format: left aligned and single spaced. Preferred border format: top border line and bottom border line.
-%\rule{\columnwidth}{1pt}
-%\end{listing}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{flight_state_plot.png}
+    \caption{Flight Mode Transition: Multicopter to Fixed-Wing Mode.}
+    \label{fig:flight_state}
+\end{figure}
 
-Text.
+\subsection{Airspeed Response}
+Figure \ref{fig:full_airspeed} presents the airspeed response during the simulation (0-100 sec), and Figure \ref{fig:zoomed_airspeed} zooms into the recovery phase (20-30 sec). Both methods exhibit similar stabilization performance.
 
-Text.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{full_airspeed_plot.png}
+    \caption{Airspeed Response (0-100 sec): Neural Network TECS (Blue) vs. PX4 TECS (Green), Airspeed Command (Red Dashed).}
+    \label{fig:full_airspeed}
+\end{figure}
 
-\subsection{Formatting of Mathematical Components}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{zoomed_airspeed_plot.png}
+    \caption{Zoomed Recovery Phase (20-30 sec): Neural Network TECS (Blue) vs. PX4 TECS (Green), Airspeed Command (Red Dashed).}
+    \label{fig:zoomed_airspeed}
+\end{figure}
 
-This is the example 1 of equation:
-\begin{linenomath}
-\begin{equation}
-a = 1,
-\end{equation}
-\end{linenomath}
-the text following an equation need not be a new paragraph. Please punctuate equations as regular text.
-%% If the documentclass option "submit" is chosen, please insert a blank line before and after any math environment (equation and eqnarray environments). This ensures correct linenumbering. The blank line should be removed when the documentclass option is changed to "accept" because the text following an equation should not be a new paragraph.
-
-This is the example 2 of equation:
-%\isPreprints{}{% This command is only used for ``preprints''.
-\begin{adjustwidth}{-\extralength}{0cm}
-%} % If the paper is ``preprints'', please uncomment this parenthesis.
-\begin{equation}
-a = b + c + d + e + f + g + h + i + j + k + l + m + n + o + p + q + r + s + t + u + v + w + x + y + z
-\end{equation}
-%\isPreprints{}{% This command is only used for ``preprints''.
-\end{adjustwidth}
-%} % If the paper is ``preprints'', please uncomment this parenthesis.
-
-%% Example of a page in landscape format (with table and table footnote).
-%\startlandscape
-%\begin{table}[H] %% Table in wide page
-%%\isPreprints{\centering}{} % This command is only used for ``preprints''.
-%\caption{This is a very wide table.\label{tab3}}
-%	\begin{tabularx}{\textwidth}{CCCC}
-%		\toprule
-%		\textbf{Title 1}	& \textbf{Title 2}	& \textbf{Title 3}	& \textbf{Title 4}\\
-%		\midrule
-%		Entry 1		& Data			& Data			& This cell has some longer content that runs over two lines.\\
-%		Entry 2		& Data			& Data			& Data\textsuperscript{1}\\
-%		\bottomrule
-%	\end{tabularx}
-%%\isPreprints{}{% This command is only used for ``preprints''.
-%	\begin{adjustwidth}{+\extralength}{0cm}
-%%} % If the paper is ``preprints'', please uncomment this parenthesis.
-%		\noindent\footnotesize{\textsuperscript{1} This is a table footnote.}
-%%\isPreprints{}{% This command is only used for ``preprints''.
-%	\end{adjustwidth}
-%%} % If the paper is ``preprints'', please uncomment this parenthesis.
-%\end{table}
-%\finishlandscape
-
-
-Please punctuate equations as regular text. Theorem-type environments (including propositions, lemmas, corollaries etc.) can be formatted as follows:
-%% Example of a theorem:
-\begin{Theorem}
-Example text of a theorem.
-\end{Theorem}
-
-The text continues here. Proofs must be formatted as follows:
-
-%% Example of a proof:
-\begin{proof}[Proof of Theorem 1]
-Text of the proof. Note that the phrase ``of Theorem 1'' is optional if it is clear which theorem is being referred to.
-\end{proof}
-The text continues here.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Discussion}
 
-Authors should discuss the results and how they can be interpreted from the perspective of previous studies and of the working hypotheses. The findings and their implications should be discussed in the broadest context possible. Future research directions may also be highlighted.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Conclusions}
@@ -461,8 +501,6 @@ This section is not mandatory, but can be added to the manuscript if the discuss
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Patents}
-
-This section is not mandatory, but may be added if there are patents resulting from the work reported in this manuscript.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \vspace{6pt} 
@@ -519,7 +557,10 @@ Written informed consent for publication must be obtained from participating pat
 %% Only for journal Nursing Reports
 %\useofartificialintelligence{Please describe in detail any and all uses of artificial intelligence (AI) or AI-assisted tools used in the preparation of the manuscript. This may include, but is not limited to, language translation, language editing and grammar, or generating text. Alternatively, please state that “AI or AI-assisted tools were not used in drafting any aspect of this manuscript”.}
 
-\acknowledgments{In this section you can acknowledge any support given which is not covered by the author contribution or funding sections. This may include administrative and technical support, or donations in kind (e.g., materials used for experiments).}
+\acknowledgments{This work was supported by Future Space Navigation \& Satellite Research Center through the National Research Foundation funded by the Ministry of Science and ICT, the Republic of Korea (2022M1A3C2074404). \\
+This research was supported by Basic Science Research Program through the National Research Foundation of Korea(NRF) funded by the Ministry of Education(2020R1A6A1A03038540)
+}
+
 
 \conflictsofinterest{Declare conflicts of interest or state ``The authors declare no conflicts of interest.'' Authors must identify and declare any personal circumstances or interest that may be perceived as inappropriately influencing the representation or interpretation of reported research results. Any role of the funders in the design of the study; in the collection, analyses or interpretation of data; in the writing of the manuscript; or in the decision to publish the results must be declared in this section. If there is no role, please state ``The funders had no role in the design of the study; in the collection, analyses, or interpretation of data; in the writing of the manuscript; or in the decision to publish the results''.} 
 
@@ -616,28 +657,10 @@ Author 1, A.B. Title of Thesis. Level of Thesis, Degree-Granting University, Loc
 
 % Chicago format (Used for journal: arts, genealogy, histories, humanities, jintelligence, laws, literature, religions, risks, socsci)
 \isChicagoStyle{%
-\begin{thebibliography}{999}
-% Reference 1
-\bibitem[Aranceta-Bartrina(1999a)]{ref-journal}
-Aranceta-Bartrina, Javier. 1999a. Title of the cited article. \textit{Journal Title} 6: 100--10.
-% Reference 2
-\bibitem[Aranceta-Bartrina(1999b)]{ref-book1}
-Aranceta-Bartrina, Javier. 1999b. Title of the chapter. In \textit{Book Title}, 2nd ed. Edited by Editor 1 and Editor 2. Publication place: Publisher, vol. 3, pp. 54–96.
-% Reference 3
-\bibitem[Baranwal and Munteanu {[1921]}(1955)]{ref-book2}
-Baranwal, Ajay K., and Costea Munteanu. 1955. \textit{Book Title}. Publication place: Publisher, pp. 154--96. First published 1921 (op-tional).
-% Reference 4
-\bibitem[Berry and Smith(1999)]{ref-thesis}
-Berry, Evan, and Amy M. Smith. 1999. Title of Thesis. Level of Thesis, Degree-Granting University, City, Country. Identifi-cation information (if available).
-% Reference 5
-\bibitem[Cojocaru et al.(1999)]{ref-unpublish}
-Cojocaru, Ludmila, Dragos Constatin Sanda, and Eun Kyeong Yun. 1999. Title of Unpublished Work. \textit{Journal Title}, phrase indicating stage of publication.
-% Reference 6
-\bibitem[Driver et al.(2000)]{ref-proceeding}
-Driver, John P., Steffen Rohrs, and Sean Meighoo. 2000. Title of Presentation. In \textit{Title of the Collected Work} (if available). Paper presented at Name of the Conference, Location of Conference, Date of Conference.
-% Reference 7
-\bibitem[Harwood(2008)]{ref-url}
-Harwood, John. 2008. Title of the cited article. Available online: URL (accessed on Day Month Year).
+\begin{thebibliography}{9}
+    \bibitem{hagan1999neural} Hagan, M. T., \& Demuth, H. B. (1999). Neural Networks for Control.
+    \bibitem{ahn2005nonlinear} Ahn, K. K., \& Thanh, T. D. C. (2005). Nonlinear PID Control to Improve the Control Performance of the Pneumatic Artificial Muscle Manipulator Using Neural Network. \textit{Journal of Mechanical Science and Technology}, 19(1), 106-115.
+    \bibitem{dao2000performance} Dao, V. N. P., \& Vemuri, R. (2000). A Performance Comparison of Different Back Propagation Neural Networks Methods in Computer Network Intrusion Detection.
 \end{thebibliography}
 }{}
 
