@@ -241,8 +241,6 @@ The transition strategy and subsequent TECS activation present several challenge
     \item \textbf{Inadequate Dynamic Modeling During Transition:} The open-loop tilt control and linear weighting neglect the aircraft's nonlinear dynamics, such as rotor-wing interactions, leading to uncontrolled altitude loss. 
     While airspeed reaches the transition threshold, altitude control is absent, resulting in subsidence.
 
-    \item \textbf{Delayed TECS Activation After Forward Transition:} TECS activates only after the transition, managing total specific energy rate as:
-    Errors (e.g., altitude loss) accumulated during transition persist until TECS engages, delaying corrective action.
 
     \item \textbf{Fixed-Gain TECS Limitations:} After forward transition, TECS uses fixed gains to compute control commands. 
     These fixed gains fail to adapt to rapid state changes or accumulated errors, hindering effective altitude and airspeed correction.
