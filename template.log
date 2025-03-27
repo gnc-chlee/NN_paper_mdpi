@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2025.1.21)  27 MAR 2025 12:37
+This is pdfTeX, Version 3.141592653-2.6-1.40.26 (MiKTeX 24.4) (preloaded format=pdflatex 2025.1.21)  27 MAR 2025 12:42
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1320,10 +1320,10 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
 [6 <./tiltrotor_gazebo.png>]
-<control_system_diagram.png, id=196, 1317.42188pt x 328.97906pt>
+<control_system_diagram.png, id=197, 1317.42188pt x 328.97906pt>
 File: control_system_diagram.png Graphic file (type png)
 <use control_system_diagram.png>
-Package pdftex.def Info: control_system_diagram.png  used on input line 477.
+Package pdftex.def Info: control_system_diagram.png  used on input line 495.
 (pdftex.def)             Requested size: 315.48538pt x 78.78088pt.
 
 
@@ -1335,15 +1335,15 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
 [7 <./control_system_diagram.png>]
-<full_altitude_plot.png, id=208, 421.575pt x 316.3017pt>
+<full_altitude_plot.png, id=209, 421.575pt x 316.3017pt>
 File: full_altitude_plot.png Graphic file (type png)
 <use full_altitude_plot.png>
-Package pdftex.def Info: full_altitude_plot.png  used on input line 513.
+Package pdftex.def Info: full_altitude_plot.png  used on input line 531.
 (pdftex.def)             Requested size: 315.48538pt x 236.70926pt.
-<zoomed_altitude_plot.png, id=209, 421.575pt x 316.3017pt>
+<zoomed_altitude_plot.png, id=210, 421.575pt x 316.3017pt>
 File: zoomed_altitude_plot.png Graphic file (type png)
 <use zoomed_altitude_plot.png>
-Package pdftex.def Info: zoomed_altitude_plot.png  used on input line 520.
+Package pdftex.def Info: zoomed_altitude_plot.png  used on input line 538.
 (pdftex.def)             Requested size: 315.48538pt x 236.70926pt.
 
 
@@ -1355,20 +1355,20 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
 [8 <./full_altitude_plot.png (PNG copy)> <./zoomed_altitude_plot.png (PNG copy)>]
-<flight_state_plot.png, id=217, 421.575pt x 316.3017pt>
+<flight_state_plot.png, id=218, 421.575pt x 316.3017pt>
 File: flight_state_plot.png Graphic file (type png)
 <use flight_state_plot.png>
-Package pdftex.def Info: flight_state_plot.png  used on input line 530.
+Package pdftex.def Info: flight_state_plot.png  used on input line 548.
 (pdftex.def)             Requested size: 315.48538pt x 236.70926pt.
-<full_airspeed_plot.png, id=220, 421.575pt x 316.3017pt>
+<full_airspeed_plot.png, id=221, 421.575pt x 316.3017pt>
 File: full_airspeed_plot.png Graphic file (type png)
 <use full_airspeed_plot.png>
-Package pdftex.def Info: full_airspeed_plot.png  used on input line 540.
+Package pdftex.def Info: full_airspeed_plot.png  used on input line 558.
 (pdftex.def)             Requested size: 315.48538pt x 236.70926pt.
-<zoomed_airspeed_plot.png, id=221, 421.575pt x 316.18124pt>
+<zoomed_airspeed_plot.png, id=222, 421.575pt x 316.18124pt>
 File: zoomed_airspeed_plot.png Graphic file (type png)
 <use zoomed_airspeed_plot.png>
-Package pdftex.def Info: zoomed_airspeed_plot.png  used on input line 547.
+Package pdftex.def Info: zoomed_airspeed_plot.png  used on input line 565.
 (pdftex.def)             Requested size: 315.48538pt x 236.61911pt.
 
 
@@ -1389,7 +1389,7 @@ Package fancyhdr Warning: \headheight is too small (12.0pt):
 (fancyhdr)                \addtolength{\topmargin}{-12.18796pt}.
 
 [10 <./zoomed_airspeed_plot.png (PNG copy)>]
-Underfull \hbox (badness 10000) in paragraph at lines 645--645
+Underfull \hbox (badness 10000) in paragraph at lines 663--663
 
  []
 
@@ -1430,17 +1430,17 @@ Package rerunfilecheck Info: File `template.out' has not changed.
 (rerunfilecheck)             Checksum: 66A6002BCF991E27556BA7C3B3443557;3976.
  ) 
 Here is how much of TeX's memory you used:
- 34404 strings out of 473535
- 644878 string characters out of 5715419
+ 34407 strings out of 473535
+ 644945 string characters out of 5715419
  1121893 words of memory out of 5000000
- 56528 multiletter control sequences out of 15000+600000
+ 56530 multiletter control sequences out of 15000+600000
  637511 words of font info for 411 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  123i,16n,135p,5086b,766s stack positions out of 10000i,1000n,20000p,200000b,200000s
  <C:\Users\user\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\tctt1000.pk> <C:\Users\user\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi600\ectt1000.pk> <C:\Users\user\AppData\Local\MiKTeX\fonts/pk/ljfour/jknappen/ec/dpi375\ecss0800.pk><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmex10.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmr10.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/mathpazo/fplmr.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/public/mathpazo/fplmri.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/urw/palatino/uplb8a.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/urw/palatino/uplr8a.pfb><C:/Users/user/AppData/Local/Programs/MiKTeX/fonts/type1/urw/palatino/uplri8a.pfb>
-Output written on template.pdf (12 pages, 1148580 bytes).
+Output written on template.pdf (12 pages, 1148796 bytes).
 PDF statistics:
- 375 PDF objects out of 1000 (max. 8388607)
- 67 named destinations out of 1000 (max. 500000)
+ 376 PDF objects out of 1000 (max. 8388607)
+ 68 named destinations out of 1000 (max. 500000)
  111398 words of extra memory for PDF output out of 128383 (max. 10000000)
 

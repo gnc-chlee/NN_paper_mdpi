@@ -1,5 +1,5 @@
 # Fdb version 4
-["pdflatex"] 1743046634.84196 "c:/Users/user/Documents/GitHub/NN_paper_mdpi/template.tex" "template.pdf" "template" 1743046639.13083 0
+["pdflatex"] 1743046950.1789 "c:/Users/user/Documents/GitHub/NN_paper_mdpi/template.tex" "template.pdf" "template" 1743046954.47947 0
   "C:/Users/user/AppData/Local/MiKTeX/fonts/map/pdftex/pdftex.map" 1742801324 82507 a9eef8696c92627b87e9975edea03b2a ""
   "C:/Users/user/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi375/ecss0800.pk" 1737445434 10028 9af3fc109e029d7d859f1abc7803cf86 ""
   "C:/Users/user/AppData/Local/MiKTeX/fonts/pk/ljfour/jknappen/ec/dpi600/ectt1000.pk" 1742801333 20028 67860e49064884390a0e095c43c7e0ab ""
@@ -257,16 +257,16 @@
   "Definitions/mdpi.cls" 1742432412 62428 7e41fdc41a1ebf0227ba76dfafe03d98 ""
   "PX4_TECS_Structure.png" 1742802076 403252 bd51c26da31f439ba0aed1c429b46fdb ""
   "PX4_VTOL_Control_Structure.png" 1742802081 557665 a19ca71c7bd8e316e63d439b8caf8491 ""
-  "c:/Users/user/Documents/GitHub/NN_paper_mdpi/template.tex" 1743046633 55513 587023ac1a84f3a2b2277a8886f1c1a7 ""
+  "c:/Users/user/Documents/GitHub/NN_paper_mdpi/template.tex" 1743046949 56222 b56c052b5bfc18f01a10648b5bbd696c ""
   "control_system_diagram.png" 1743045712 107417 7a7ee531ddd5bf3db3ab59cddfbffb94 ""
   "flight_state_plot.png" 1743009973 42192 78490923287867076bc9cfbc9e32a75d ""
   "full_airspeed_plot.png" 1743015984 68710 3cd89c22eabc5d61d04ac81a7b66f86c ""
   "full_altitude_plot.png" 1743009562 87807 097c83f156780fc8e11649f5b7148968 ""
   "neural_network_diagram.png" 1742914088 18704 9632d162595df81da51e52637e33d57b ""
   "sigmoid_function_shapes.png" 1742917131 19497 1d08e57b498eba494a77a472c8f91f2e ""
-  "template.aux" 1743046638 9399 5eba01b9f17d18cbe20c1efa8b70c559 "pdflatex"
-  "template.out" 1743046638 3976 66a6002bcf991e27556ba7c3b3443557 "pdflatex"
-  "template.tex" 1743046633 55513 587023ac1a84f3a2b2277a8886f1c1a7 ""
+  "template.aux" 1743046954 9744 f73bcdf3ab798e0e8f849946401e2c3d "pdflatex"
+  "template.out" 1743046954 3976 66a6002bcf991e27556ba7c3b3443557 "pdflatex"
+  "template.tex" 1743046949 56222 b56c052b5bfc18f01a10648b5bbd696c ""
   "tiltrotor_gazebo.png" 1743014132 83513 e649358de3b47f5d2eaa754aed7ff964 ""
   "zoomed_airspeed_plot.png" 1743016091 25731 8c3c88f9b89d2c44411f1365410b125d ""
   "zoomed_altitude_plot.png" 1743009458 105460 d5e4d2c318a6dd374d366a7febb4dbe9 ""

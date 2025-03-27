@@ -436,24 +436,42 @@ In simulation, we focus on longitudinal dynamics, including altitude, airspeed, 
 
 where \(m\) is the mass, \(J_x, J_y, J_z, J_{xz}\) are the moments of inertia, \(S_{\text{wing}}\) is the wing area, \(b\) is the wing span, and \(\bar{c}\) is the mean aerodynamic chord. The aerodynamic coefficients are also provided in Table \ref{tab:aircraft_model_parameters}.
 
-\begin{tabular}{|l|c|}
-    \hline
-    \textbf{Symbol} & \textbf{Value} \\ \hline
-    \multicolumn{2}{|c|}{\textbf{Aerodynamic Coefficients}} \\ \hline
-    \( C_{L_0} \) & 0.0867 \\ \hline
-    \( C_{L_\alpha} \) & 4.02 \\ \hline
-    \( C_{L_q} \) & 3.8954 \\ \hline
-    \( C_{L_{\delta_e}} \) & 0.278 \\ \hline
-    \( C_{D_0} \) & 0.0197 \\ \hline
-    \( C_{D_\alpha} \) & 0.0791 \\ \hline
-    \( C_{D_{\alpha^2}} \) & 1.06 \\ \hline
-    \( C_{D_q} \) & 0.0 \\ \hline
-    \( C_{D_{\delta_e}} \) & 0.0633 \\ \hline
-    \( C_{m_0} \) & 0.0302 \\ \hline
-    \( C_{m_\alpha} \) & -0.126 \\ \hline
-    \( C_{m_q} \) & -1.3047 \\ \hline
-    \( C_{m_{\delta_e}} \) & -0.206 \\ \hline
-\end{tabular} \\
+\begin{table}[H]
+    \centering
+    \caption{Aerodynamic Coefficients of the Aircraft Model}
+    \label{tab:aero_coefficients}
+    % 공통 제목
+    \textbf{Aerodynamic Coefficients} \\ % 공통 제목을 tabular 밖에서 텍스트로
+    \vspace{0.5cm} % 제목과 표 사이 간격 조정
+    \begin{minipage}[t]{0.45\textwidth} % [t]로 위쪽 정렬
+        \centering
+        \begin{tabular}{|l|c|}
+            \hline
+            \textbf{Symbol} & \textbf{Value} \\ \hline
+            \( C_{L_0} \) & 0.0867 \\ \hline
+            \( C_{L_\alpha} \) & 4.02 \\ \hline
+            \( C_{L_q} \) & 3.8954 \\ \hline
+            \( C_{L_{\delta_e}} \) & 0.278 \\ \hline
+            \( C_{D_0} \) & 0.0197 \\ \hline
+            \( C_{D_\alpha} \) & 0.0791 \\ \hline
+            \( C_{D_{\alpha^2}} \) & 1.06 \\ \hline
+        \end{tabular}
+    \end{minipage}
+    \hfill
+    \begin{minipage}[t]{0.45\textwidth} % [t]로 위쪽 정렬
+        \centering
+        \begin{tabular}{|l|c|}
+            \hline
+            \textbf{Symbol} & \textbf{Value} \\ \hline
+            \( C_{D_q} \) & 0.0 \\ \hline
+            \( C_{D_{\delta_e}} \) & 0.0633 \\ \hline
+            \( C_{m_0} \) & 0.0302 \\ \hline
+            \( C_{m_\alpha} \) & -0.126 \\ \hline
+            \( C_{m_q} \) & -1.3047 \\ \hline
+            \( C_{m_{\delta_e}} \) & -0.206 \\ \hline
+        \end{tabular}
+    \end{minipage}
+\end{table}
 The aerodynamic coefficients are provided in Table \ref{tab:aircraft_model_parameters}. The lift, drag, and moment coefficients are defined as:
 
 where \(C_{L_0}\) is the lift coefficient at zero angle of attack, \(C_{L_\alpha}\) is the lift coefficient per unit angle of attack, \(C_{L_q}\) is the lift coefficient per unit pitch rate, \(C_{L_{\delta_e}}\) is the lift coefficient per unit elevator deflection, \(C_{D_0}\) is the drag coefficient at zero angle of attack, \(C_{D_\alpha}\) is the drag coefficient per unit angle of attack, \(C_{D_{\alpha^2}}\) is the drag coefficient per unit angle of attack squared, \(C_{D_q}\) is the drag coefficient per unit pitch rate, \(C_{D_{\delta_e}}\) is the drag coefficient per unit elevator deflection, \(C_{m_0}\) is the moment coefficient at zero angle of attack, \(C_{m_\alpha}\) is the moment coefficient per unit angle of attack, \(C_{m_q}\) is the moment coefficient per unit pitch rate, and \(C_{m_{\delta_e}}\) is the moment coefficient per unit elevator deflection.
