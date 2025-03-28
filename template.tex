@@ -408,9 +408,9 @@ In simulation, we focus on longitudinal dynamics, including altitude, airspeed, 
     \begin{minipage}{0.45\linewidth}
         \centering
         \begin{tabular}{|l|c|}
-            \hline
-            \textbf{Symbol} & \textbf{Value} \\ \hline
+            \hline            
             \multicolumn{2}{|c|}{\textbf{Physical Properties}} \\ \hline
+            \textbf{Symbol} & \textbf{Value} \\ \hline
             \( m \) & 5.22 kg \\ \hline
             \( J_x \) & 1.229 kg·m² \\ \hline
             \( J_y \) & 0.1702 kg·m² \\ \hline
@@ -529,21 +529,22 @@ These parameters are critical in determining the smoothness and stability of the
     \item TILT\_RATE = 15 deg/s
 \end{itemize}
 
-\subsection{Altitude Response}
-Figure \ref{fig:full_altitude} shows the altitude response across the entire simulation period (0-100 sec), while Figure \ref{fig:zoomed_altitude} zooms into the recovery phase immediately following the transition (20-30 sec). The neural network-based TECS demonstrates significantly faster altitude recovery compared to the PX4 fixed-gain TECS.
+\subsection{TECS State Response}
+Figure \ref{fig:tecs_state_response} show the altitude and airspeed responses across the entire simulation period (0-100 sec), respectively. The neural network-based TECS demonstrates significantly faster altitude recovery compared to the PX4 fixed-gain TECS, while both methods exhibit similar airspeed stabilization.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{full_altitude_plot.png}
-    \caption{Altitude Response (0-100 sec): Neural Network TECS (Blue) vs. PX4 TECS (Green), Altitude Command (Red Dashed).}
-    \label{fig:full_altitude}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{zoomed_altitude_plot.png}
-    \caption{Zoomed Recovery Phase (20-30 sec): Neural Network TECS (Blue) vs. PX4 TECS (Green), Altitude Command (Red Dashed).}
-    \label{fig:zoomed_altitude}
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_altitude_plot.png}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{full_airspeed_plot.png}
+    \end{minipage}
+    \caption{TECS State Response: Altitude and Airspeed Comparison.}
+    \label{fig:tecs_state_response}
 \end{figure}
 
 \subsection{Flight Mode}
@@ -556,22 +557,7 @@ In Figure \ref{fig:flight_state}, we illustrate the transition from multicopter 
     \label{fig:flight_state}
 \end{figure}
 
-\subsection{Airspeed Response}
-Figure \ref{fig:full_airspeed} presents the airspeed response during the simulation (0-100 sec), and Figure \ref{fig:zoomed_airspeed} zooms into the recovery phase (20-30 sec). Both methods exhibit similar stabilization performance.
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{full_airspeed_plot.png}
-    \caption{Airspeed Response (0-100 sec): Neural Network TECS (Blue) vs. PX4 TECS (Green), Airspeed Command (Red Dashed).}
-    \label{fig:full_airspeed}
-\end{figure}
-
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{zoomed_airspeed_plot.png}
-    \caption{Zoomed Recovery Phase (20-30 sec): Neural Network TECS (Blue) vs. PX4 TECS (Green), Airspeed Command (Red Dashed).}
-    \label{fig:zoomed_airspeed}
-\end{figure}
+In figure \ref{fig:flight_state}, 13.8 seconds is the time when the aircraft enters the fixed-wing mode. The transition phase is critical for the aircraft's stability and performance, and the neural network-based TECS gain tuning method significantly improves the aircraft's response during this phase.
 
 \subsection{Energy Rate Error Response}
 The energy rate error response is shown in Figure \ref{fig:ste_rate_error},\ref{fig:sbe_rate_error} . The neural network-based TECS demonstrates faster error reduction, leading to improved altitude and airspeed recovery and stability.
