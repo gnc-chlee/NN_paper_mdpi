@@ -198,6 +198,8 @@ $^{2}$ \quad Department of Drone and Robotics, Sejong Cyber University; sjnbae@g
 %}
 \usepackage{tikz}
 \usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usetikzlibrary{arrows.meta, positioning, calc, fit, shapes.geometric}
 \usepackage{float}
 \usepackage{graphicx}
 \usepackage{subcaption} % Required for the subfigure environment
@@ -235,22 +237,72 @@ The transition phase in open-source autopilots involves two key mechanisms:
     At this point, the outputs for attitude control of the fixed-wing and rotary-wing are divided based on the current airspeed with weighting applied. Once the transition completion speed (TRANSITION\_ASPD) is reached, the output of the fixed-wing control takes over completely.
 \end{itemize}
 
-\begin{verbatim}
-    Start in Multicopter Mode.
-    Tilt the rotors forward to 15°.
-    If airspeed < BLENDED_ASPD m/s:
-        Maintain Multicopter Mode.
-    Begin Transition Mode P1:
-        Set weight = 1.0 - (airspeed - BLENDED_ASPD) / (TRANSITION_ASPD - BLENDED_ASPD).
-        Distribute attitude control based on the weight.
-        Set thrust to the TRANSITION_THRUST
-        Tilt the rotors forward to 45°.
-    If airspeed < TRANSITION_ASPD m/s:
-        Maintain Transition Mode P1.
-    Begin Transition Mode P2:
-        Tilt the rotors forward to 90°.
-    Switch to Fixed-Wing Mode.
-\end{verbatim}
+\begin{center}
+    \begin{tikzpicture}[
+       node distance=1.8cm and 2cm,
+       every node/.style={font=\small},
+       box/.style={draw, rectangle, rounded corners, minimum width=4cm, minimum height=1cm, align=center},
+       arrow/.style={-{Latex}, thick}
+       ]
+       
+       \node (label) at (0, 0) {Transition Start};
+       
+       \node[draw, diamond, aspect=2, minimum width=3.5cm, align=center, below=of label] (cond1) {$V_a \ge \text{Blended\_Aspd}$};
+       
+       \node[draw, diamond, aspect=2, minimum width=3.5cm, align=center, below=of cond1] (cond2) {$V_a \ge \text{Transition\_Aspd}$};
+       
+       \node[draw, diamond, aspect=2, minimum width=3.5cm, align=center, below=of cond2] (cond3) {$V_a \ge \text{Transition\_Aspd}$};
+       
+       
+       \node[below=of cond3] (next) {Transition Completed};
+       
+       \draw[arrow] (label) -- node[right, yshift=-11pt, align=left]{
+          $\delta_c = \text{tilt forward angle} = 15^\circ$
+       } (cond1);
+       
+       \draw[arrow] (cond1) -- node[right, yshift=0pt, align=left]{
+          True \\
+          ~ \\
+          ~ \\
+          $\delta_c = \text{critical tilt angle} = 45^\circ$
+       } (cond2);
+       
+       \draw[arrow] (cond2) -- node[right, yshift=0pt, align=left]{
+          True \\
+          ~ \\
+          ~ \\
+          $\delta_c = \text{tilt angle} = 90^\circ$
+       }  (cond3);
+       
+       \draw[arrow] (cond3) -- node[right, yshift=2pt]{True} (next);
+       
+       \draw[arrow] (cond1.west) -- ++(-1.315, 0) -- (-3.35, -1.1) -- (0, -1.1);
+       \node at ([xshift=-2.5cm,yshift=-0.2cm]cond1.north) {False};
+       
+       \draw[arrow] (cond2.west) -- ++(-1.11, 0) -- (-3.3, -4.9) -- (0, -4.9);
+       \node at ([xshift=-2.5cm,yshift=-0.2cm]cond2.north) {False};
+       
+       \draw[arrow] (cond3.west) -- ++(-1.11, 0) -- (-3.3, -8.9) -- (0, -8.9);
+       \node at ([xshift=-2.5cm,yshift=-0.2cm]cond3.north) {False};
+       
+       \coordinate (padUL1) at ($(label.north west) + (-2.5, 0.0)$);
+       \coordinate (padLR1) at ($(cond1.south east) + (3.2, -0.5)$);
+       \node[draw=black, dashed, rounded corners, fit=(padUL1)(padLR1)] {};
+       \node[anchor=north east, font=\bfseries] at ($(padLR1) + (0.0, 4.2)$) {MC Mode};
+       
+       \coordinate (padUL2) at ($(cond2.north west) + (-2.67, 2.07)$);
+       \coordinate (padLR2) at ($(cond3.south east) + (3.15, -0.5)$);
+       \node[draw=black, dashed, rounded corners, fit=(padUL2)(padLR2)] {};
+       \node[anchor=north east, font=\bfseries] at ($(padLR2) + (0.0, 7.65)$) {Transition};
+       
+       \coordinate (padUL3) at ($(next.north west) + (-2.08, 1.55)$);
+       \coordinate (padLR3) at ($(next.south east) + (2.58, -0.0)$);
+       \node[draw=black, dashed, rounded corners, fit=(padUL3)(padLR3)] {};
+       \node[anchor=north east, font=\bfseries] at ($(padLR3) + (-0.0, 2.1)$) {FW Mode};
+       
+    \end{tikzpicture}
+ \end{center}
+
 
 In the transition phase, the autopilot does not consider the aircraft's nonlinear dynamics, such as rotor tilt angle changes, which can lead to altitude loss and instability post-transition.
 
