@@ -216,6 +216,8 @@ Open-source autopilot systems, such as PX4, are widely adopted for their accessi
 In PX4, the transition phase relies on open-loop tilt angle control and linear weighting of multicopter and fixed-wing control outputs, which neglects nonlinear dynamics and leads to altitude loss. TECS activates only after the transition, in fixed-wing mode, where its fixed gains fail to promptly correct errors accumulated during the transition. This study proposes a real-time adaptive TECS gain tuning framework using a simple neural network to address these limitations after forward transition. The neural network dynamically adjusts TECS gains based on the aircraft’s current state (e.g., altitude error, airspeed, pitch rate), aiming to minimize altitude loss and ensure rapid stabilization of airspeed and pitch attitude. This approach provides a practical alternative to designing a complex transition control system.
 
 The paper is structured as follows: Section 2 analyzes the transition phase of open-source autopilots and the limitations of TECS implementation. Section 3 details the neural network-based gain tuning methodology. Section 4 presents simulation results comparing the adaptive TECS with conventional methods. Section 5 concludes with implications and future research directions. Through this work, we aim to enhance the reliability and efficiency of control systems for next-generation eVTOL platforms.
+This study addresses the critical gap in tiltrotor eVTOL control by introducing a neural network-based adaptive TECS framework, offering a novel solution to the challenges of post-transition instability neglected by existing open-source autopilot systems.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\linewidth]{PX4_VTOL_Control_Structure.png}
@@ -226,7 +228,7 @@ The paper is structured as follows: Section 2 analyzes the transition phase of o
 % Section 2
 \section{Literature Review}
 \subsection{Analysis of Open-Source Autopilot Transition Phase}
-Open-source autopilot systems, such as PX4, support a variety of unmanned aerial vehicles (UAVs), including tiltrotor eVTOLs. However, their transition logic from hover to forward flight relies on simplified strategies that inadequately address the complex dynamics of hybrid aircraft.
+Open-source autopilot systems, such as PX4, support a variety of unmanned aerial vehicles (UAVs), including tiltrotor eVTOLs. However, their transition logic from hover to forward flight relies on simplified strategies that inadequately address the complex dynamics of hybrid aircraft. While TECS has proven effective for fixed-wing aircraft, its application to tiltrotor eVTOLs during the transition phase remains underexplored, necessitating adaptive strategies as proposed in this study.
 
 \subsubsection{Transition Phase Operation}
 The transition phase in open-source autopilots involves two key mechanisms:
@@ -237,74 +239,77 @@ The transition phase in open-source autopilots involves two key mechanisms:
     At this point, the outputs for attitude control of the fixed-wing and rotary-wing are divided based on the current airspeed with weighting applied. Once the transition completion speed (TRANSITION\_ASPD) is reached, the output of the fixed-wing control takes over completely.
 \end{itemize}
 
-\begin{center}
-    \begin{tikzpicture}[
-       node distance=1.8cm and 2cm,
-       every node/.style={font=\small},
-       box/.style={draw, rectangle, rounded corners, minimum width=4cm, minimum height=1cm, align=center},
-       arrow/.style={-{Latex}, thick}
-       ]
-       
-       \node (label) at (0, 0) {Transition Start};
-       
-       \node[draw, diamond, aspect=2, minimum width=3.5cm, align=center, below=of label] (cond1) {$V_a \ge \text{Blended\_Aspd}$};
-       
-       \node[draw, diamond, aspect=2, minimum width=3.5cm, align=center, below=of cond1] (cond2) {$V_a \ge \text{Transition\_Aspd}$};
-       
-       \node[draw, diamond, aspect=2, minimum width=3.5cm, align=center, below=of cond2] (cond3) {$V_a \ge \text{Transition\_Aspd}$};
-       
-       
-       \node[below=of cond3] (next) {Transition Completed};
-       
-       \draw[arrow] (label) -- node[right, yshift=-11pt, align=left]{
-          $\delta_c = \text{tilt forward angle} = 15^\circ$
-       } (cond1);
-       
-       \draw[arrow] (cond1) -- node[right, yshift=0pt, align=left]{
-          True \\
-          ~ \\
-          ~ \\
-          $\delta_c = \text{critical tilt angle} = 45^\circ$
-       } (cond2);
-       
-       \draw[arrow] (cond2) -- node[right, yshift=0pt, align=left]{
-          True \\
-          ~ \\
-          ~ \\
-          $\delta_c = \text{tilt angle} = 90^\circ$
-       }  (cond3);
-       
-       \draw[arrow] (cond3) -- node[right, yshift=2pt]{True} (next);
-       
-       \draw[arrow] (cond1.west) -- ++(-1.315, 0) -- (-3.35, -1.1) -- (0, -1.1);
-       \node at ([xshift=-2.5cm,yshift=-0.2cm]cond1.north) {False};
-       
-       \draw[arrow] (cond2.west) -- ++(-1.11, 0) -- (-3.3, -4.9) -- (0, -4.9);
-       \node at ([xshift=-2.5cm,yshift=-0.2cm]cond2.north) {False};
-       
-       \draw[arrow] (cond3.west) -- ++(-1.11, 0) -- (-3.3, -8.9) -- (0, -8.9);
-       \node at ([xshift=-2.5cm,yshift=-0.2cm]cond3.north) {False};
-       
-       \coordinate (padUL1) at ($(label.north west) + (-2.5, 0.0)$);
-       \coordinate (padLR1) at ($(cond1.south east) + (3.2, -0.5)$);
-       \node[draw=black, dashed, rounded corners, fit=(padUL1)(padLR1)] {};
-       \node[anchor=north east, font=\bfseries] at ($(padLR1) + (0.0, 4.2)$) {MC Mode};
-       
-       \coordinate (padUL2) at ($(cond2.north west) + (-2.67, 2.07)$);
-       \coordinate (padLR2) at ($(cond3.south east) + (3.15, -0.5)$);
-       \node[draw=black, dashed, rounded corners, fit=(padUL2)(padLR2)] {};
-       \node[anchor=north east, font=\bfseries] at ($(padLR2) + (0.0, 7.65)$) {Transition};
-       
-       \coordinate (padUL3) at ($(next.north west) + (-2.08, 1.55)$);
-       \coordinate (padLR3) at ($(next.south east) + (2.58, -0.0)$);
-       \node[draw=black, dashed, rounded corners, fit=(padUL3)(padLR3)] {};
-       \node[anchor=north east, font=\bfseries] at ($(padLR3) + (-0.0, 2.1)$) {FW Mode};
-       
-    \end{tikzpicture}
- \end{center}
+\begin{figure}[htbp]
+    \centering
+    \resizebox{0.4\textwidth}{!}{ % 크기를 40%로 줄임
+        \begin{tikzpicture}[
+           node distance=1.8cm and 2cm,
+           every node/.style={font=\small},
+           box/.style={draw, rectangle, rounded corners, minimum width=4cm, minimum height=1cm, align=center},
+           arrow/.style={-{Latex}, thick}
+           ]
+           
+           \node (label) at (0, 0) {Transition Start};
+           
+           \node[draw, diamond, aspect=2, minimum width=3.5cm, align=center, below=of label] (cond1) {$V_a \ge \text{Blended\_Aspd}$};
+           
+           \node[draw, diamond, aspect=2, minimum width=3.5cm, align=center, below=of cond1] (cond2) {$V_a \ge \text{Transition\_Aspd}$};
+           
+           \node[draw, diamond, aspect=2, minimum width=3.5cm, align=center, below=of cond2] (cond3) {$V_a \ge \text{Transition\_Aspd}$};
+           
+           \node[below=of cond3] (next) {Transition Completed};
+           
+           \draw[arrow] (label) -- node[right, yshift=-11pt, align=left]{
+              $\delta_c = \text{tilt forward angle} = 15^\circ$
+           } (cond1);
+           
+           \draw[arrow] (cond1) -- node[right, yshift=0pt, align=left]{
+              True \\
+              ~ \\
+              ~ \\
+              $\delta_c = \text{critical tilt angle} = 45^\circ$
+           } (cond2);
+           
+           \draw[arrow] (cond2) -- node[right, yshift=0pt, align=left]{
+              True \\
+              ~ \\
+              ~ \\
+              $\delta_c = \text{tilt angle} = 90^\circ$
+           }  (cond3);
+           
+           \draw[arrow] (cond3) -- node[right, yshift=2pt]{True} (next);
+           
+           \draw[arrow] (cond1.west) -- ++(-1.315, 0) -- (-3.35, -1.1) -- (0, -1.1);
+           \node at ([xshift=-2.5cm,yshift=-0.2cm]cond1.north) {False};
+           
+           \draw[arrow] (cond2.west) -- ++(-1.11, 0) -- (-3.3, -4.9) -- (0, -4.9);
+           \node at ([xshift=-2.5cm,yshift=-0.2cm]cond2.north) {False};
+           
+           \draw[arrow] (cond3.west) -- ++(-1.11, 0) -- (-3.3, -8.9) -- (0, -8.9);
+           \node at ([xshift=-2.5cm,yshift=-0.2cm]cond3.north) {False};
+           
+           \coordinate (padUL1) at ($(label.north west) + (-2.5, 0.0)$);
+           \coordinate (padLR1) at ($(cond1.south east) + (3.2, -0.5)$);
+           \node[draw=black, dashed, rounded corners, fit=(padUL1)(padLR1)] {};
+           \node[anchor=north east, font=\bfseries] at ($(padLR1) + (0.0, 4.2)$) {MC Mode};
+           
+           \coordinate (padUL2) at ($(cond2.north west) + (-2.67, 2.07)$);
+           \coordinate (padLR2) at ($(cond3.south east) + (3.15, -0.5)$);
+           \node[draw=black, dashed, rounded corners, fit=(padUL2)(padLR2)] {};
+           \node[anchor=north east, font=\bfseries] at ($(padLR2) + (0.0, 7.65)$) {Transition};
+           
+           \coordinate (padUL3) at ($(next.north west) + (-2.08, 1.55)$);
+           \coordinate (padLR3) at ($(next.south east) + (2.58, -0.0)$);
+           \node[draw=black, dashed, rounded corners, fit=(padUL3)(padLR3)] {};
+           \node[anchor=north east, font=\bfseries] at ($(padLR3) + (-0.0, 2.1)$) {FW Mode};
+           
+        \end{tikzpicture}
+    } % resizebox 끝
+    \caption{Flowchart for the Transition Process in Flight Modes}
+    \label{fig:transition_process}
+\end{figure}
 
-
-In the transition phase, the autopilot does not consider the aircraft's nonlinear dynamics, such as rotor tilt angle changes, which can lead to altitude loss and instability post-transition.
+In the transition phase, the open-source method does not consider the aircraft's nonlinear dynamics, such as rotor tilt angle changes, which can lead to altitude loss and instability post-transition.
 
 \subsection{Total Energy Control System (TECS)}
 The Total Energy Control System (TECS) is a control strategy used in aircraft to manage their total energy, which consists of potential energy (\(E_P = mgh\)) and kinetic energy (\(E_K = \frac{1}{2}mv^2\)). TECS regulates airspeed and altitude by coordinating throttle and pitch inputs: throttle adjusts the total energy, while pitch controls the distribution of energy between altitude and speed.
@@ -354,7 +359,7 @@ For tiltrotors, the transition phase introduces unique dynamics, such as rotor t
 
 \section{Methodology}
 \subsection{Neural Network-Based Gain Tuning Methodology}
-To overcome the limitations of static TECS gains, this study proposes a neural network-based approach for real-time gain tuning, specifically tailored to the post-transition phase of tiltrotor eVTOLs. The methodology dynamically adjusts the proportional (\(K_p\)) and integral (\(K_i\)) gains of TECS based on the aircraft’s flight state, mitigating altitude loss and improving stability immediately after the transition to fixed-wing mode.
+To address the limitations of static TECS gains in managing the nonlinear dynamics of tiltrotor eVTOLs during the post-transition phase, this study introduces a real-time gain tuning methodology using a single-layer feedforward neural network. The approach dynamically adjusts the proportional (\(K_p\)) and integral (\(K_i\)) gains of TECS based on key flight states—such as altitude error, airspeed deviation, and pitch rate—thereby reducing altitude loss and enhancing stability immediately after transitioning to fixed-wing mode, while offering a computationally efficient solution for open-source autopilot systems.
 
 \subsubsection{Why Use a Neural Network?}
 Immediately after the transition to fixed-wing mode, the aircraft experiences residual effects from the transition phase, such as aerodynamic shifts and thrust vector changes. Fixed gains cannot adequately respond to these variations, leading to poor altitude control. A neural network enables real-time adaptation by learning and adjusting gains based on current errors (e.g., altitude and energy rate deviations), offering a robust solution for open-source platforms like PX4.
@@ -536,7 +541,7 @@ where \(C_{L_0}\) is the lift coefficient at zero angle of attack, \(C_{L_\alpha
 \begin{equation}
     L = \frac{1}{2} \rho v^2 S C_L, \quad D = \frac{1}{2} \rho v^2 S C_D, \quad M = \frac{1}{2} \rho v^2 S C_m
 \end{equation}
-where \(L\) is the lift force, \(D\) is the drag force, \(M\) is the moment, \(\rho\) is the air density, \(v\) is the airspeed, and \(S\) is the wing area.
+where \(L\) is the lift force, \(D\) is the drag force, \(M\) is the pitching moment, \(\rho\) is the air density, \(v\) is the airspeed, and \(S\) is the wing area.
 
 
 \subsection{Control System}
@@ -550,7 +555,7 @@ The control system for the tiltrotor eVTOL consists of the following components:
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\linewidth]{control_system_diagram.png}
+    \includegraphics[width=0.9\linewidth]{control_system_diagram.png}
     \caption{Control System Diagram}
     \label{fig:control_system_diagram}
 \end{figure}
@@ -563,24 +568,41 @@ In simulation, we focus on longitudinal dynamics, including altitude, airspeed, 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Simulation Results}
-The proposed neural network-based adaptive TECS gain tuning method was implemented in PX4 simulations to evaluate its performance during the post-transition phase of a tiltrotor eVTOL. The results were compared against the default fixed-gain TECS configuration to assess improvements in altitude stability and recovery time.
-
 \subsection{Simulation Setup}
-The simulation environment used MATLAB Simulink. The aircraft model was integrated with the neural network-based adaptive TECS gain tuning method, replacing the default fixed gains. The simulation focused on the post-transition phase, with the aircraft transitioning to fixed-wing mode at a predetermined airspeed. The initial condition is from the transition phase, so we consider some parameters in the transition phase to set the condition of transition. The parameters that influence the transition performance are:
+The simulation environment used MATLAB Simulink. The aircraft model was integrated with the neural network-based adaptive TECS gain tuning method, replacing the default fixed gains. The simulation focused on the post-transition phase, with the aircraft transitioning from multicopter to fixed-wing mode at a predetermined airspeed. The initial condition is derived from the transition phase; thus, parameters governing this phase were carefully defined to establish the simulation conditions.
 
-\begin{itemize}
-    \item \text{BLENDED\_ASPD}: The airspeed at which the transition from multicopter mode to blended mode begins.
-    \item \text{TRANSITION\_ASPD}: The airspeed at which the transition to fixed-wing mode is completed.
-    \item \text{TILT\_RATE}: The rate at which the rotors tilt during the transition phase.
-\end{itemize}
+To ensure realistic and optimal performance, specific parameters were set for both the Vertical Take-Off and Landing (VTOL) transition and the Total Energy Control System (TECS) gain tuning. The VTOL parameters, which dictate the transition dynamics from multicopter to fixed-wing mode, include the critical tilt angle, transition thrust, blended airspeed, transition airspeed, and tilt rate. These values were selected based on typical configurations for tiltrotor electric VTOL (eVTOL) aircraft. Similarly, the TECS parameters, including learning rates, sigmoid shaping factors, and initial gains, were chosen to optimize the neural network's adaptability and ensure stability during gain tuning. Table~\ref{tab:simulation_parameters} provides a detailed summary of these parameters and their values used in the simulation.
 
-These parameters are critical in determining the smoothness and stability of the transition phase. For the simulation, the following values were used:
-\begin{itemize}
-    \item BLENDED\_ASPD = 10 m/s
-    \item TRANSITION\_ASPD = 15 m/s
-    \item TILT\_RATE = 15 deg/s
-\end{itemize}
+\begin{table}[h]
+    \centering
+    \caption{Simulation Parameters for VTOL Transition and TECS Gain Tuning}
+    \label{tab:simulation_parameters}
+    \begin{tabular}{|l|c|}
+        \hline
+        \textbf{Parameter} & \textbf{Value} \\
+        \hline
+        \multicolumn{2}{|c|}{\textbf{VTOL Parameters}} \\
+        \hline
+        Critical Tilt Angle & 50 degrees \\
+        Transition Thrust & 0.35 \\
+        Blended Airspeed (BLENDED\_ASPD) & 8 m/s \\
+        Transition Airspeed (TRANSITION\_ASPD) & 15 m/s \\
+        \hline
+        \multicolumn{2}{|c|}{\textbf{TECS Parameters}} \\
+        \hline
+        $\eta_{\text{ste}}$ (STE Learning Rate) & 0.000001 \\
+        $\eta_{\text{sbe}}$ (SBE Learning Rate) & 0.000001 \\
+        $Y_g^{\text{ste}}$ (STE Sigmoid Parameter) & 0.3 \\
+        $Y_g^{\text{sbe}}$ (SBE Sigmoid Parameter) & 0.2 \\
+        Initial $K_p^{\text{ste}}$ (STE Proportional Gain) & 0.8 \\
+        Initial $K_i^{\text{ste}}$ (STE Integral Gain) & 0.02 \\
+        Initial $K_p^{\text{sbe}}$ (SBE Proportional Gain) & 1.2 \\
+        Initial $K_i^{\text{sbe}}$ (SBE Integral Gain) & 0.20 \\
+        \hline
+    \end{tabular}
+\end{table}
 
+The VTOL parameters, such as Trnsition Thrust ,blended airspeed (BLENDED\_ASPD), and transition airspeed (TRANSITION\_ASPD) are critical for ensuring a smooth and stable transition phase. These are complemented by the TECS parameters, which enable the neural network to dynamically adjust gains in response to altitude and energy rate errors. The values presented in Table~\ref{tab:simulation_parameters} were implemented in the simulation to evaluate the performance of the proposed adaptive TECS gain tuning method.
 \subsection{TECS State Response}
 Figure \ref{fig:tecs_state_response} show the altitude and airspeed responses across the entire simulation period (0-100 sec), respectively. The neural network-based TECS demonstrates significantly faster altitude recovery compared to the PX4 fixed-gain TECS, while both methods exhibit similar airspeed stabilization.
 
@@ -630,6 +652,7 @@ The energy rate error response is shown in Figure \ref{fig:ste_rate_error},\ref{
     \end{minipage}
 \end{figure}
 
+
 \subsection{TECS Control Outputs}
 Figure \ref{fig:thrust_output} and Figure \ref{fig:pitch_output} present the thrust and pitch outputs of the TECS control system, respectively. These plots illustrate the control inputs applied post-transition, highlighting the neural network's ability to adjust these outputs for improved stability.
 
@@ -650,6 +673,26 @@ Figure \ref{fig:thrust_output} and Figure \ref{fig:pitch_output} present the thr
     \end{minipage}
 \end{figure}
 
+\subsection{TECS Gain Tuning}
+The TECS gain tuning process is illustrated in Figure \ref{fig:ste_gain}, \ref{fig:sbe_gain}. The neural network dynamically adjusts the proportional and integral gains based on the altitude and energy rate errors, leading to improved performance during the post-transition phase.
+\begin{figure}[H]
+    \centering
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{ste_gain.png}
+        \captionof{figure}{Total Energy Gain}
+        \label{fig:ste_gain}
+    \end{minipage}
+    \hfill
+    \begin{minipage}{0.45\textwidth}
+        \centering
+        \includegraphics[width=\linewidth]{sbe_gain.png}
+        \captionof{figure}{Balance Energy Gain}
+        \label{fig:sbe_gain}
+    \end{minipage}
+\end{figure}
+
+The gain tuning process is critical for ensuring the TECS can adapt to the changing dynamics of the aircraft during the transition phase. The neural network's ability to learn and adjust these gains in real-time significantly enhances the overall performance of the TECS.
 
 \subsection{Sensitive Analysis}
 The neural network-based adaptive TECS gain tuning method was tested under various conditions to evaluate its robustness and sensitivity to different flight states. The results demonstrate consistent performance across different scenarios, highlighting the method's adaptability and reliability.
