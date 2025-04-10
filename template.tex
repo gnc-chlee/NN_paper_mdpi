@@ -77,7 +77,7 @@
 
 %=================================================================
 % Full title of the paper (Capitalized)
-\Title{Real-Time Adaptive TECS Gain Tuning Using Neural Networks for Tiltrotor eVTOL}
+\Title{Real-Time TECS Gain Tuning Using Steepest Descent Method for Post-Transition Stability in Tiltrotor eVTOLs}
 
 % MDPI internal command: Title for citation in the left column
 \TitleCitation{Title}
@@ -227,10 +227,11 @@ This study addresses the critical gap in tiltrotor eVTOL control by introducing 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Section 2
 \section{Literature Review}
-\subsection{Analysis of Open-Source Autopilot Transition Phase}
-Open-source autopilot systems, such as PX4, support a variety of unmanned aerial vehicles (UAVs), including tiltrotor eVTOLs. However, their transition logic from hover to forward flight relies on simplified strategies that inadequately address the complex dynamics of hybrid aircraft. While TECS has proven effective for fixed-wing aircraft, its application to tiltrotor eVTOLs during the transition phase remains underexplored, necessitating adaptive strategies as proposed in this study.
+\subsection{Limitations of Current Transition Logic in Open-Source Autopilots}
+Despite recent advances in open-source autopilot systems such as PX4, the transition control logic for hybrid aircraft, particularly tiltrotor eVTOLs, remains rudimentary. The control architecture relies heavily on open-loop strategies and static gain scheduling, which fail to capture the nonlinear and time-varying dynamics encountered during and after transition phases. This inadequacy forms the basis for the adaptive gain tuning approach proposed in this study.
 
-\subsubsection{Transition Phase Operation}
+
+\subsubsection{Analysis of PX4 Transition Phase}
 The transition phase in open-source autopilots involves two key mechanisms:
 \begin{itemize}
     \item \text{Open Loop Tilt Angle Control} \\
@@ -358,107 +359,75 @@ where:
 For tiltrotors, the transition phase introduces unique dynamics, such as rotor tilt angle changes, which affect the balance between \(\dot{E}_P\) and \(\dot{E}_K\). Fixed gains, as used in PX4’s default TECS, fail to adapt to these rapid changes, resulting in delayed altitude recovery and instability post-transition.
 
 \section{Methodology}
-\subsection{Neural Network-Based Gain Tuning Methodology}
-To address the limitations of static TECS gains in managing the nonlinear dynamics of tiltrotor eVTOLs during the post-transition phase, this study introduces a real-time gain tuning methodology using a single-layer feedforward neural network. The approach dynamically adjusts the proportional (\(K_p\)) and integral (\(K_i\)) gains of TECS based on key flight states—such as altitude error, airspeed deviation, and pitch rate—thereby reducing altitude loss and enhancing stability immediately after transitioning to fixed-wing mode, while offering a computationally efficient solution for open-source autopilot systems.
 
-\subsubsection{Why Use a Neural Network?}
-Immediately after the transition to fixed-wing mode, the aircraft experiences residual effects from the transition phase, such as aerodynamic shifts and thrust vector changes. Fixed gains cannot adequately respond to these variations, leading to poor altitude control. A neural network enables real-time adaptation by learning and adjusting gains based on current errors (e.g., altitude and energy rate deviations), offering a robust solution for open-source platforms like PX4.
+\subsection{Adaptive Gain Tuning via Steepest Descent}
+To mitigate the limitations of static TECS gains in addressing the nonlinear dynamics of tiltrotor eVTOLs during the post-transition phase, this study proposes a real-time gain tuning methodology employing the steepest descent method. The proposed approach dynamically adjusts the proportional (\(K_p\)) and integral (\(K_i\)) gains of TECS based on critical flight states—such as altitude error, airspeed deviation, and pitch rate—thereby minimizing altitude loss and substantially enhancing stability immediately following the transition to fixed-wing mode, while providing a resource-efficient solution for open-source autopilot systems.
 
-\subsubsection{Neural Network Design}
-The proposed neural network is a simple two-layer feedforward network:
-\begin{itemize}
-    \item \textbf{Inputs}:
-    \begin{itemize}
-        \item Proportional error: \(e_p(k) = \dot{E}_{\text{sp}}(k) - \dot{E}(k)\),
-        \item Integral error: \(e_i(k) = \sum \int e_p(k) \, dt\).
-    \end{itemize}
-    \item \textbf{Outputs}:
-    \begin{itemize}
-        \item Adjusted gains \(K_p(k)\) and \(K_i(k)\), computed using a sigmoid activation function:
-        \begin{equation}
-            f(x) = \frac{2(1 - e^{-x \cdot Y_g})}{Y_g (1 + e^{-x \cdot Y_g})}
-        \end{equation}
-        where \(x(k) = K_p(k)e_p(k) + K_i(k)e_i(k)\), and \(Y_g\) is a tuning parameter shaping the sigmoid curve in figure \ref{fig:sigmoid_function_shapes}.
-    \end{itemize}
-\end{itemize}
+The steepest descent method minimizes the error function defined as \(E = \frac{1}{2}(r(t) - y_s(t))^2\), where \(r(t)\) represents the reference state and \(y_s(t)\) denotes the system output. The update rules for the gains are formulated as:
+\[
+\frac{\mathrm{d} K_p}{\mathrm{d} t} = -\eta_p \frac{\partial E}{\partial K_p}, \quad \frac{\mathrm{d} K_i}{\mathrm{d} t} = -\eta_i \frac{\partial E}{\partial K_i}
+\]
+This formulation draws inspiration from early work by Ahn and Thanh (2005), who applied the steepest descent method to tune PID gains for a pneumatic artificial muscle (PAM) manipulator, using a single-layer structure initially described as a neural network \cite{Ahn2005}. More recent advancements, such as those by Alagoz et al. (2018), further refined this approach for nonlinear TRMS control, employing a fourth-degree polynomial to approximate system dynamics \cite{Alagoz2018}. The stability of the proposed approach is substantiated by Yağmur and Alagoz (2017), who established the Lyapunov stability of continuous-time gradient descent dynamics for \(\forall \eta > 0\) \cite{Yagmur2017}. Specifically, by defining the Lyapunov function \(V = E\), the time derivative is:
+\[
+\frac{\mathrm{d} V}{\mathrm{d} t} = \frac{\partial E}{\partial K_p} \frac{\mathrm{d} K_p}{\mathrm{d} t} + \frac{\partial E}{\partial K_i} \frac{\mathrm{d} K_i}{\mathrm{d} t} = -\eta_p \left( \frac{\partial E}{\partial K_p} \right)^2 - \eta_i \left( \frac{\partial E}{\partial K_i} \right)^2 \leq 0
+\]
+This guarantees the stability of the proposed method for positive learning rates.
 
-The control input \(u(k) = f(x)\) drives the TECS outputs (thrust and pitch), with gains updated dynamically.
+\subsubsection{Motivation for the Steepest Descent Method}
+During the transition from multicopter to fixed-wing mode, the aircraft undergoes significant aerodynamic shifts and thrust vector changes, resulting in residual effects that persist into the post-transition phase. Fixed-gain TECS, activated only after the transition to fixed-wing mode, is insufficient to address these dynamic variations, often leading to suboptimal altitude control and delayed stabilization. The steepest descent method facilitates real-time adaptation by iteratively optimizing the gains based on current error metrics (e.g., altitude and energy rate deviations), providing a robust and resource-efficient solution for open-source platforms such as PX4. By directly minimizing the error function, this method ensures rapid adaptation to the dynamic flight conditions immediately following the transition, thereby substantially enhancing post-transition stability.
+
+\subsubsection{Steepest Descent Gain Update Formulation}
+The steepest descent method optimizes the gains by minimizing the cost function:
+\begin{equation}
+    J(k) = \frac{1}{2}(\dot{E}_{\text{sp}}(k) - \dot{E}(k))^2
+\end{equation}
+where \(\dot{E}_{\text{sp}}(k)\) represents the desired energy rate and \(\dot{E}(k)\) denotes the actual energy rate. The control structure, inspired by Ahn and Thanh (2005), consists of a control optimizer that adjusts the gains and an adaptation optimizer that estimates the system dynamics, as depicted in Figure \ref{fig:gradient_descent_control_diagram}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{gradient_descent_control_diagram.png}
+    \caption{Block diagram of gradient descent optimizer control, adapted from Ahn and Thanh (2005) \cite{Ahn2005}.}
+    \label{fig:gradient_descent_control_diagram}
+\end{figure}
+
+where \(x(k) = K_p(k)e_p(k) + K_i(k)e_i(k)\), \(e_p(k) = \dot{E}_{\text{sp}}(k) - \dot{E}(k)\), \(e_i(k) = \sum \int e_p(k) \, dt\), and \(Y_g\) is a tuning parameter shaping the sigmoid curve, as illustrated in Figure \ref{fig:sigmoid_function_shapes}. The update rules for the gains are:
+
+\begin{equation}
+    f(x) = \frac{2(1 - e^{-x Y_g})}{Y_g (1 + e^{-x Y_g})}
+\end{equation}
+with
+\begin{equation}
+    x(k) = K_p(k) e_p(k) + K_i(k) e_i(k), \quad e_p(k) = \dot{E}_{\text{sp}}(k) - \dot{E}(k), \quad e_i(k) = \sum \int e_p(k) \, dt
+\end{equation}
+
+The update rules for the controller gains are given by:
+\begin{equation}
+    K_p(k+1) = K_p(k) - \eta_p \frac{\partial J(k)}{\partial K_p(k)}, \quad K_i(k+1) = K_i(k) - \eta_i \frac{\partial J(k)}{\partial K_i(k)}
+\end{equation}
+where the partial derivatives are evaluated as:
+\begin{equation}
+    \frac{\partial J(k)}{\partial K_p(k)} = -e_p(k) f'(x(k)) e_p(k), \quad \frac{\partial J(k)}{\partial K_i(k)} = -e_p(k) f'(x(k)) e_i(k)
+\end{equation}
+and
+\begin{equation}
+    f'(x) = \frac{4e^{-x Y_g}}{(1 + e^{-x Y_g})^2}
+\end{equation}
+The learning rates $\eta_p$ and $\eta_i$ govern the convergence speed and must be selected to ensure both stability and responsiveness.
 
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.6\linewidth]{sigmoid_function_shapes.png}
-    \caption{Sigmoid function shapes for different \(Y_g\) values}
+    \caption{Sigmoid function shapes for different $Y_g$ values.}
     \label{fig:sigmoid_function_shapes}
 \end{figure}
 
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.6\linewidth]{neural_network_diagram.png}
-    \caption{Neural network block diagram for adaptive TECS gain tuning}
-    \label{fig:neural_network_block_diagram}
-\end{figure}
-
-\subsection{Tuning Process}
-The gains are tuned using the steepest descent method to minimize the cost function:
-\begin{equation}
-    J(k) = \frac{1}{2}(\dot{E}_{\text{sp}}(k) - \dot{E}(k))^2
-\end{equation}
-
-The update rules are:
-\begin{equation}
-    K_p(k+1) = K_p(k) - \eta_p \frac{\partial J(k)}{\partial K_p(k)}, \quad K_i(k+1) = K_i(k) - \eta_i \frac{\partial J(k)}{\partial K_i(k)}
-\end{equation}
-with partial derivatives:
-\begin{equation}
-    \frac{\partial J(k)}{\partial K_p(k)} = -e_p(k) \cdot f'(x(k)) \cdot e_p(k), \quad \frac{\partial J(k)}{\partial K_i(k)} = -e_p(k) \cdot f'(x(k)) \cdot e_i(k)
-\end{equation}
-where \(f'(x) = \frac{4e^{-x \cdot Y_g}}{(1 + e^{-x \cdot Y_g})^2}\), and \(\eta_p\), \(\eta_i\) are learning rates.
-
-This method replaces static gains with a dynamic, state-dependent tuning mechanism, ensuring computational efficiency for real-time implementation on autopilot systems.
-
-
 \subsection{Implementation and Validation}
-The proposed method will be implemented and tested using PX4 simulations, focusing on the post-transition phase in fixed-wing mode. Performance will be evaluated by comparing altitude stability and recovery time against the default fixed-gain TECS.
+The proposed method was implemented and tested using PX4 simulations, focusing on the post-transition phase in fixed-wing mode. Performance was evaluated by comparing altitude stability and recovery time against the default fixed-gain TECS.
 
+\section{Simulation Model}
+\subsection{Aircraft Configuration and Longitudinal Dynamics}
+The simulation framework is designed to model and analyze the longitudinal dynamics of a tiltrotor eVTOL platform, specifically focusing on altitude, airspeed, and pitch attitude. The aircraft model reflects a conventional tiltrotor configuration with transition-capable rotors and fixed-wing surfaces, parameterized based on typical subscale demonstrators. The key physical parameters used in simulation are listed in Table~\ref{tab:aircraft_model_parameters}.
 
-\section{Model}
-\subsection{Aircraft Model}
-In simulation, we focus on longitudinal dynamics, including altitude, airspeed, and pitch attitude control. The aircraft model used in the simulation is a tiltrotor eVTOL with the following parameters:
-% \begin{table}[H]
-%     \caption{Aircraft Model Parameters}
-%     \label{tab:aircraft_model_parameters}
-%     \small
-%     \begin{tabular}{|l|c|c|}
-%     \hline
-%     \textbf{Parameter} & \textbf{Symbol} & \textbf{Value} \\ \hline
-    
-%     \multicolumn{3}{|c|}{\textbf{Physical Properties}} \\ \hline
-%     Mass & \( m \) & 5.22 kg \\ \hline
-%     Inertia (\( J_x \)) & \( J_x \) & 1.229 kg·m² \\ \hline
-%     Inertia (\( J_y \)) & \( J_y \) & 0.1702 kg·m² \\ \hline
-%     Inertia (\( J_z \)) & \( J_z \) & 0.8808 kg·m² \\ \hline
-%     Inertia (\( J_{xz} \)) & \( J_{xz} \) & 0.9343 kg·m² \\ \hline
-%     Wing Area & \( S_{\text{wing}} \) & 0.75 m² \\ \hline
-%     Wing Span & \( b \) & 2.10 m \\ \hline
-%     Mean Aerodynamic Chord & \( c \) & 0.3571 m \\ \hline
-    
-%     \multicolumn{3}{|c|}{\textbf{Aerodynamic Coefficients}} \\ \hline
-%     Lift Coefficient (zero angle) & \( C_{L_0} \) & 0.0867 \\ \hline
-%     Lift Coefficient (alpha) & \( C_{L_\alpha} \) & 4.02 \\ \hline
-%     Lift Coefficient (q) & \( C_{L_q} \) & 3.8954 \\ \hline
-%     Lift Coefficient (delta\_e) & \( C_{L_{\delta_e}} \) & 0.278 \\ \hline
-%     Drag Coefficient (zero angle) & \( C_{D_0} \) & 0.0197 \\ \hline
-%     Drag Coefficient (alpha) & \( C_{D_\alpha} \) & 0.0791 \\ \hline
-%     Drag Coefficient (alpha²) & \( C_{D_{\alpha^2}} \) & 1.06 \\ \hline
-%     Drag Coefficient (q) & \( C_{D_q} \) & 0.0 \\ \hline
-%     Drag Coefficient (delta\_e) & \( C_{D_{\delta_e}} \) & 0.0633 \\ \hline
-%     Moment Coefficient (zero angle) & \( C_{m_0} \) & 0.0302 \\ \hline
-%     Moment Coefficient (alpha) & \( C_{m_\alpha} \) & -0.126 \\ \hline
-%     Moment Coefficient (q) & \( C_{m_q} \) & -1.3047 \\ \hline
-%     Moment Coefficient (delta\_e) & \( C_{m_{\delta_e}} \) & -0.206 \\ \hline
-
-%     \end{tabular}
-% \end{table}
 
 \begin{figure}[H]
     \centering
@@ -535,7 +504,6 @@ where \(m\) is the mass, \(J_x, J_y, J_z, J_{xz}\) are the moments of inertia, \
     \end{adjustbox}
     \caption{Aerodynamic Coefficients of the Aircraft Model}
 \end{table}
-The aerodynamic coefficients are provided in Table \ref{tab:aircraft_model_parameters}. The lift, drag, and moment coefficients are defined as:
 
 where \(C_{L_0}\) is the lift coefficient at zero angle of attack, \(C_{L_\alpha}\) is the lift coefficient per unit angle of attack, \(C_{L_q}\) is the lift coefficient per unit pitch rate, \(C_{L_{\delta_e}}\) is the lift coefficient per unit elevator deflection, \(C_{D_0}\) is the drag coefficient at zero angle of attack, \(C_{D_\alpha}\) is the drag coefficient per unit angle of attack, \(C_{D_{\alpha^2}}\) is the drag coefficient per unit angle of attack squared, \(C_{D_q}\) is the drag coefficient per unit pitch rate, \(C_{D_{\delta_e}}\) is the drag coefficient per unit elevator deflection, \(C_{m_0}\) is the moment coefficient at zero angle of attack, \(C_{m_\alpha}\) is the moment coefficient per unit angle of attack, \(C_{m_q}\) is the moment coefficient per unit pitch rate, and \(C_{m_{\delta_e}}\) is the moment coefficient per unit elevator deflection.
 \begin{equation}
@@ -544,15 +512,21 @@ where \(C_{L_0}\) is the lift coefficient at zero angle of attack, \(C_{L_\alpha
 where \(L\) is the lift force, \(D\) is the drag force, \(M\) is the pitching moment, \(\rho\) is the air density, \(v\) is the airspeed, and \(S\) is the wing area.
 
 
-\subsection{Control System}
-The control system for the tiltrotor eVTOL consists of the following components:
+\subsection{Control Architecture}
+The control architecture of the tiltrotor eVTOL is mode-dependent and composed of cascaded feedback loops tailored to the vehicle’s flight configuration. During vertical flight (Multicopter mode), PID-based controllers regulate body angular rates and altitude, while during forward flight (Fixed-Wing mode), the control switches to a fixed-wing attitude controller complemented by a Total Energy Control System (TECS) to manage coupled airspeed and altitude dynamics. This hierarchical structure allows for smooth transition and robustness across flight modes.
 \begin{itemize}
-    \item \textbf{Multicopter Attitude Control}: PID controllers for roll, pitch, and yaw control in Multicopter mode.
-    \item \textbf{Multicopter Altitude Control}: PID controller for altitude control in Multicopter mode.
-    \item \textbf{Fixed-Wing Attitude Control}: PID controller for attitude control in Fixed-Wing mode.
-    \item \textbf{TECS}: Total Energy Control System for airspeed and altitude regulation.
+    \item \textbf{Multicopter Flight Mode}:
+    \begin{itemize}
+        \item \textit{Attitude Stabilization:} A cascaded PID controller regulates roll, pitch, and yaw rates using angular rate feedback.
+        \item \textit{Altitude Hold:} A proportional-integral (PI) controller tracks desired altitude by modulating vertical thrust.
+    \end{itemize}
+    
+    \item \textbf{Fixed-Wing Flight Mode}:
+    \begin{itemize}
+        \item \textit{Attitude Control:} A pitch attitude controller maintains longitudinal stability using elevator surface deflection.
+        \item \textit{Energy Management:} TECS regulates total and balance energy rates by coordinating throttle and pitch commands.
+    \end{itemize}
 \end{itemize}
-
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.9\linewidth]{control_system_diagram.png}
@@ -560,16 +534,17 @@ The control system for the tiltrotor eVTOL consists of the following components:
     \label{fig:control_system_diagram}
 \end{figure}
 
-The control system diagram is shown in Figure \ref{fig:control_system_diagram}.
-
-In simulation, we focus on longitudinal dynamics, including altitude, airspeed, and pitch attitude control. 
+This architecture enables mode-specific control tuning and ensures a seamless handover between multicopter and fixed-wing control laws during the transition phase. Figure~\ref{fig:control_system_diagram} presents a high-level overview of the control system architecture used in simulation.
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Simulation Results}
 \subsection{Simulation Setup}
-The simulation environment used MATLAB Simulink. The aircraft model was integrated with the neural network-based adaptive TECS gain tuning method, replacing the default fixed gains. The simulation focused on the post-transition phase, with the aircraft transitioning from multicopter to fixed-wing mode at a predetermined airspeed. The initial condition is derived from the transition phase; thus, parameters governing this phase were carefully defined to establish the simulation conditions.
+The simulation environment utilized MATLAB Simulink, where the aircraft model was integrated with the adaptive TECS gain tuning method based on the steepest descent optimization approach. This method dynamically adjusts the proportional and integral gains of TECS, replacing the fixed-gain setup used in PX4's default TECS implementation. The simulation primarily focused on the post-transition phase, specifically the transition from multicopter to fixed-wing mode at a predefined airspeed. The simulation conditions were derived from the aircraft's transition dynamics, with careful definition of key parameters governing this phase.
+
+The VTOL parameters governing the aircraft's transition, such as critical tilt angle, transition thrust, and blended airspeed, were selected based on typical eVTOL configurations. TECS parameters, including learning rates and sigmoid shaping factors, were tuned to optimize the steepest descent method's ability to adaptively adjust the control gains in response to altitude and energy rate errors, ensuring efficient performance during the transition phase. Table~\ref{tab:simulation_parameters} summarizes these key simulation parameters.
+
 
 To ensure realistic and optimal performance, specific parameters were set for both the Vertical Take-Off and Landing (VTOL) transition and the Total Energy Control System (TECS) gain tuning. The VTOL parameters, which dictate the transition dynamics from multicopter to fixed-wing mode, include the critical tilt angle, transition thrust, blended airspeed, transition airspeed, and tilt rate. These values were selected based on typical configurations for tiltrotor electric VTOL (eVTOL) aircraft. Similarly, the TECS parameters, including learning rates, sigmoid shaping factors, and initial gains, were chosen to optimize the neural network's adaptability and ensure stability during gain tuning. Table~\ref{tab:simulation_parameters} provides a detailed summary of these parameters and their values used in the simulation.
 
@@ -602,9 +577,11 @@ To ensure realistic and optimal performance, specific parameters were set for bo
     \end{tabular}
 \end{table}
 
-The VTOL parameters, such as Trnsition Thrust ,blended airspeed (BLENDED\_ASPD), and transition airspeed (TRANSITION\_ASPD) are critical for ensuring a smooth and stable transition phase. These are complemented by the TECS parameters, which enable the neural network to dynamically adjust gains in response to altitude and energy rate errors. The values presented in Table~\ref{tab:simulation_parameters} were implemented in the simulation to evaluate the performance of the proposed adaptive TECS gain tuning method.
+The VTOL parameters, such as Transition Thrust ,blended airspeed (BLENDED\_ASPD), and transition airspeed (TRANSITION\_ASPD) are critical for ensuring a smooth and stable transition phase. These are complemented by the TECS parameters, which enable the neural network to dynamically adjust gains in response to altitude and energy rate errors. The values presented in Table~\ref{tab:simulation_parameters} were implemented in the simulation to evaluate the performance of the proposed adaptive TECS gain tuning method.
+
 \subsection{TECS State Response}
-Figure \ref{fig:tecs_state_response} show the altitude and airspeed responses across the entire simulation period (0-100 sec), respectively. The neural network-based TECS demonstrates significantly faster altitude recovery compared to the PX4 fixed-gain TECS, while both methods exhibit similar airspeed stabilization.
+Figure~\ref{fig:tecs_state_response} illustrates the altitude and airspeed responses over the simulation period (0-100 sec). The steepest descent-based TECS shows faster altitude recovery compared to the fixed-gain TECS, indicating the effectiveness of the adaptive gain tuning in mitigating altitude loss during the critical post-transition phase. Both methods stabilize airspeed at a similar rate, underscoring the effectiveness of the steepest descent optimization for altitude control.
+
 
 \begin{figure}[H]
     \centering
@@ -622,7 +599,7 @@ Figure \ref{fig:tecs_state_response} show the altitude and airspeed responses ac
 \end{figure}
 
 \subsection{Flight Mode}
-In Figure \ref{fig:flight_state}, we illustrate the transition from multicopter mode to fixed-wing mode, where TECS is activated in fixed-wing mode.
+In Figure~\ref{fig:flight_state}, the transition from multicopter mode to fixed-wing mode is illustrated, occurring at 13.8 seconds. During this phase, TECS is activated in fixed-wing mode. The steepest descent-based TECS significantly improves the aircraft's stability and response during this critical transition, compared to the fixed-gain approach, which exhibits a slower stabilization.
 
 \begin{figure}[H]
     \centering
@@ -634,7 +611,8 @@ In Figure \ref{fig:flight_state}, we illustrate the transition from multicopter 
 In figure \ref{fig:flight_state}, 13.8 seconds is the time when the aircraft enters the fixed-wing mode. The transition phase is critical for the aircraft's stability and performance, and the neural network-based TECS gain tuning method significantly improves the aircraft's response during this phase.
 
 \subsection{Energy Rate Error Response}
-The energy rate error response is shown in Figure \ref{fig:ste_rate_error},\ref{fig:sbe_rate_error} . The neural network-based TECS demonstrates faster error reduction, leading to improved altitude and airspeed recovery and stability.
+Figures~\ref{fig:ste_rate_error} and~\ref{fig:sbe_rate_error} show the specific total energy rate (STE) and specific balance energy rate (SBE) error responses, respectively. The steepest descent-based TECS demonstrates faster reduction in both STE and SBE errors, leading to improved altitude and airspeed recovery, showcasing its enhanced stability in the post-transition phase.
+
 \begin{figure}[H]
     \centering
     \begin{minipage}{0.45\textwidth}
@@ -867,6 +845,19 @@ Author 1, A.B.; Author 2, C.D.; Author 3, E.F. Title of presentation. In Proceed
 % Reference 7
 \bibitem[Author7(year)]{ref-thesis}
 Author 1, A.B. Title of Thesis. Level of Thesis, Degree-Granting University, Location of University, Date of Completion.
+
+\bibitem{Alagoz2018}
+B. B. Alagoz, A. Tepljakov, G. Kavuran, and H. Alisoy, ``Adaptive Control of Nonlinear TRMS Model by Using Gradient Descent Optimizers,'' in \emph{2018 International Conference on Artificial Intelligence and Data Processing (IDAP)}, pp. 1--6, IEEE, 2018.
+
+\bibitem{Yagmur2017}
+N. Yağmur and B. B. Alagoz, ``Comparison of Solutions of Numerical Gradient Descent Method and Continuous Time Gradient Descent Dynamics and Lyapunov Stability,'' \emph{Journal Name}, 2017.
+
+\bibitem{Shimizu1995}
+K. Shimizu, H. Nukumi, and S. Ito, ``Direct Steepest Descent Control of Nonlinear Dynamical Systems,'' \emph{IFAC Proceedings}, vol. 28, no. 14, pp. 801--806, 1995.
+
+\bibitem{Ahn2005}
+K. K. Ahn and T. D. C. Thanh, ``Nonlinear PID Control to Improve the Control Performance of the Pneumatic Artificial Muscle Manipulator Using Neural Network,'' \emph{Journal of Mechanical Science and Technology}, vol. 19, no. 1, pp. 106--115, 2005.
+
 \end{thebibliography}
 }
 
@@ -905,6 +896,10 @@ Lippincott, T., \& Poindexter, E. K. (2019). \textit{Title of the unpublished ma
 % Reference 7
 \bibitem[Harwood(2008)]{ref-url}
 Harwood, J. (2008). \textit{Title of the cited article}. Available online: URL (accessed on Day Month Year).
+% Reference 8
+\bibitem{Ahn2005}
+K. K. Ahn and T. D. C. Thanh, ``Nonlinear PID Control to Improve the Control Performance of the Pneumatic Artificial Muscle Manipulator Using Neural Network,'' \emph{Journal of Mechanical Science and Technology}, vol. 19, no. 1, pp. 106--115, 2005.
+
 \end{thebibliography}
 }{}
 
