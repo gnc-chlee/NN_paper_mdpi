@@ -220,7 +220,7 @@ This study addresses the critical gap in tiltrotor eVTOL control by introducing 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\linewidth]{PX4_VTOL_Control_Structure.png}
+    \includegraphics[width=1\linewidth]{figures/PX4_VTOL_Control_Structure.png}
     \caption{PX4 VTOL Control Structure}
     \label{fig:enter-label}
 \end{figure}
@@ -317,7 +317,7 @@ The Total Energy Control System (TECS) is a control strategy used in aircraft to
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=1\linewidth]{PX4_TECS_Structure.png}
+    \includegraphics[width=1\linewidth]{figures/PX4_TECS_Structure.png}
     \caption{PX4 TECS Control Structure}
     \label{fig:enter-label}
 \end{figure}
@@ -385,7 +385,7 @@ where \(\dot{E}_{\text{sp}}(k)\) represents the desired energy rate and \(\dot{E
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{gradient_descent_control_diagram.png}
+    \includegraphics[width=0.8\textwidth]{figures/gradient_descent_control_diagram.png}
     \caption{Block diagram of gradient descent optimizer control, adapted from Ahn and Thanh (2005) \cite{Ahn2005}.}
     \label{fig:gradient_descent_control_diagram}
 \end{figure}
@@ -416,7 +416,7 @@ The learning rates $\eta_p$ and $\eta_i$ govern the convergence speed and must b
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\linewidth]{sigmoid_function_shapes.png}
+    \includegraphics[width=0.6\linewidth]{figures/sigmoid_function_shapes.png}
     \caption{Sigmoid function shapes for different $Y_g$ values.}
     \label{fig:sigmoid_function_shapes}
 \end{figure}
@@ -453,7 +453,7 @@ The simulation framework is designed to model and analyze the longitudinal dynam
     \hfill % 표와 그림 사이에 여백 추가
     \begin{minipage}{0.45\linewidth}
         \centering
-        \includegraphics[width=\linewidth]{tiltrotor_gazebo.png}
+        \includegraphics[width=\linewidth]{figures/tiltrotor_gazebo.png}
         \captionof{figure}{Tiltrotor Gazebo model}
         \label{fig:tiltrotor_gazebo}
     \end{minipage}
@@ -506,6 +506,17 @@ where \(m\) is the mass, \(J_x, J_y, J_z, J_{xz}\) are the moments of inertia, \
 \end{table}
 
 where \(C_{L_0}\) is the lift coefficient at zero angle of attack, \(C_{L_\alpha}\) is the lift coefficient per unit angle of attack, \(C_{L_q}\) is the lift coefficient per unit pitch rate, \(C_{L_{\delta_e}}\) is the lift coefficient per unit elevator deflection, \(C_{D_0}\) is the drag coefficient at zero angle of attack, \(C_{D_\alpha}\) is the drag coefficient per unit angle of attack, \(C_{D_{\alpha^2}}\) is the drag coefficient per unit angle of attack squared, \(C_{D_q}\) is the drag coefficient per unit pitch rate, \(C_{D_{\delta_e}}\) is the drag coefficient per unit elevator deflection, \(C_{m_0}\) is the moment coefficient at zero angle of attack, \(C_{m_\alpha}\) is the moment coefficient per unit angle of attack, \(C_{m_q}\) is the moment coefficient per unit pitch rate, and \(C_{m_{\delta_e}}\) is the moment coefficient per unit elevator deflection.
+
+The aerodynamic coefficients \(C_L\), \(C_D\), and \(C_m\) are computed as follows:
+
+\begin{align}
+    C_L &= C_{L_0} + C_{L_\alpha} \alpha + C_{L_q} \frac{q \bar{c}}{2v} + C_{L_{\delta_e}} \delta_e \\
+    C_D &= C_{D_0} + C_{D_\alpha} \alpha + C_{D_{\alpha^2}} \alpha^2 + C_{D_q} \frac{q \bar{c}}{2v} + C_{D_{\delta_e}} \delta_e \\
+    C_m &= C_{m_0} + C_{m_\alpha} \alpha + C_{m_q} \frac{q \bar{c}}{2v} + C_{m_{\delta_e}} \delta_e
+\end{align}
+These expressions allow the lift, drag, and pitching moment coefficients to be evaluated dynamically based on instantaneous flight conditions, including angle of attack \(\alpha\), pitch rate \(q\), and elevator deflection \(\delta_e\).
+The aerodynamic forces and moments acting on the aircraft are calculated using the following equations:
+
 \begin{equation}
     L = \frac{1}{2} \rho v^2 S C_L, \quad D = \frac{1}{2} \rho v^2 S C_D, \quad M = \frac{1}{2} \rho v^2 S C_m
 \end{equation}
@@ -529,7 +540,7 @@ The control architecture of the tiltrotor eVTOL is mode-dependent and composed o
 \end{itemize}
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.9\linewidth]{control_system_diagram.png}
+    \includegraphics[width=0.9\linewidth]{figures/control_system_diagram.png}
     \caption{Control System Diagram}
     \label{fig:control_system_diagram}
 \end{figure}
@@ -541,12 +552,9 @@ This architecture enables mode-specific control tuning and ensures a seamless ha
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Simulation Results}
 \subsection{Simulation Setup}
-The simulation environment utilized MATLAB Simulink, where the aircraft model was integrated with the adaptive TECS gain tuning method based on the steepest descent optimization approach. This method dynamically adjusts the proportional and integral gains of TECS, replacing the fixed-gain setup used in PX4's default TECS implementation. The simulation primarily focused on the post-transition phase, specifically the transition from multicopter to fixed-wing mode at a predefined airspeed. The simulation conditions were derived from the aircraft's transition dynamics, with careful definition of key parameters governing this phase.
+The simulation was conducted using MATLAB Simulink. The aircraft model was evaluated under three configurations: (1) the PX4 default fixed-gain TECS, (2) a manually tuned fixed-gain TECS, and (3) the proposed Steepest Descent Adaptive TECS. The simulation targeted the post-transition phase, where the aircraft transitions from multicopter to fixed-wing mode at a predetermined airspeed. The initial conditions were derived from the transition phase, with parameters governing this phase meticulously defined to establish the simulation conditions.
 
-The VTOL parameters governing the aircraft's transition, such as critical tilt angle, transition thrust, and blended airspeed, were selected based on typical eVTOL configurations. TECS parameters, including learning rates and sigmoid shaping factors, were tuned to optimize the steepest descent method's ability to adaptively adjust the control gains in response to altitude and energy rate errors, ensuring efficient performance during the transition phase. Table~\ref{tab:simulation_parameters} summarizes these key simulation parameters.
-
-
-To ensure realistic and optimal performance, specific parameters were set for both the Vertical Take-Off and Landing (VTOL) transition and the Total Energy Control System (TECS) gain tuning. The VTOL parameters, which dictate the transition dynamics from multicopter to fixed-wing mode, include the critical tilt angle, transition thrust, blended airspeed, transition airspeed, and tilt rate. These values were selected based on typical configurations for tiltrotor electric VTOL (eVTOL) aircraft. Similarly, the TECS parameters, including learning rates, sigmoid shaping factors, and initial gains, were chosen to optimize the neural network's adaptability and ensure stability during gain tuning. Table~\ref{tab:simulation_parameters} provides a detailed summary of these parameters and their values used in the simulation.
+To ensure realistic and optimal performance, specific parameters were configured for both the Vertical Take-Off and Landing (VTOL) transition and the Total Energy Control System (TECS) gain tuning. The VTOL parameters, which govern the transition dynamics from multicopter to fixed-wing mode, include the critical tilt angle, transition thrust, blended airspeed, and transition airspeed. These values were selected based on typical configurations for tiltrotor electric VTOL (eVTOL) aircraft. Similarly, the TECS parameters, including learning rates, sigmoid shaping factors, and initial gains, were selected to optimize the steepest descent method's adaptability and ensure stability during gain tuning. Table~\ref{tab:simulation_parameters} provides a detailed summary of these parameters and their values used in the simulation.
 
 \begin{table}[h]
     \centering
@@ -573,6 +581,10 @@ To ensure realistic and optimal performance, specific parameters were set for bo
         Initial $K_i^{\text{ste}}$ (STE Integral Gain) & 0.02 \\
         Initial $K_p^{\text{sbe}}$ (SBE Proportional Gain) & 1.2 \\
         Initial $K_i^{\text{sbe}}$ (SBE Integral Gain) & 0.20 \\
+        Default $K_p^{\text{ste}}$ (Default STE Proportional Gain) & 0.8 \\
+        Default $K_i^{\text{ste}}$ (Default STE Integral Gain) & 0.02 \\
+        Default $K_p^{\text{sbe}}$ (Default SBE Proportional Gain) & 1.2 \\
+        Default $K_i^{\text{sbe}}$ (Default SBE Integral Gain) & 0.20 \\
         \hline
     \end{tabular}
 \end{table}
@@ -587,28 +599,28 @@ Figure~\ref{fig:tecs_state_response} illustrates the altitude and airspeed respo
     \centering
     \begin{minipage}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{full_altitude_plot.png}
+        \includegraphics[width=\linewidth]{figures/full_altitude_plot.png}
     \end{minipage}
     \hfill
     \begin{minipage}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{full_airspeed_plot.png}
+        \includegraphics[width=\linewidth]{figures/full_airspeed_plot.png}
     \end{minipage}
     \caption{TECS State Response: Altitude and Airspeed Comparison.}
     \label{fig:tecs_state_response}
 \end{figure}
 
 \subsection{Flight Mode}
-In Figure~\ref{fig:flight_state}, the transition from multicopter mode to fixed-wing mode is illustrated, occurring at 13.8 seconds. During this phase, TECS is activated in fixed-wing mode. The steepest descent-based TECS significantly improves the aircraft's stability and response during this critical transition, compared to the fixed-gain approach, which exhibits a slower stabilization.
+Figure \ref{fig:flight_state} illustrates the transition from multicopter to fixed-wing mode, where TECS is activated in fixed-wing mode.
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{flight_state_plot.png}
+    \includegraphics[width=0.8\textwidth]{figures/flight_state_plot.png}
     \caption{Flight Mode Transition: Multicopter to Fixed-Wing Mode.}
     \label{fig:flight_state}
 \end{figure}
 
-In figure \ref{fig:flight_state}, 13.8 seconds is the time when the aircraft enters the fixed-wing mode. The transition phase is critical for the aircraft's stability and performance, and the neural network-based TECS gain tuning method significantly improves the aircraft's response during this phase.
+As depicted in Figure \ref{fig:flight_state}, the aircraft enters fixed-wing mode at 13.8 seconds. The transition phase is critical for the aircraft's stability and performance, and the steepest descent-based adaptive TECS substantially enhances the aircraft's response during this phase.
 
 \subsection{Energy Rate Error Response}
 Figures~\ref{fig:ste_rate_error} and~\ref{fig:sbe_rate_error} show the specific total energy rate (STE) and specific balance energy rate (SBE) error responses, respectively. The steepest descent-based TECS demonstrates faster reduction in both STE and SBE errors, leading to improved altitude and airspeed recovery, showcasing its enhanced stability in the post-transition phase.
@@ -617,15 +629,15 @@ Figures~\ref{fig:ste_rate_error} and~\ref{fig:sbe_rate_error} show the specific 
     \centering
     \begin{minipage}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{ste_rate_error_plot.png}
-        \captionof{figure}{Specific Total Energy Rate Error (STE)}
+        \includegraphics[width=\linewidth]{figures/ste_rate_error_plot.png}
+        \captionof{figure}{Specific Total Energy Rate Error}
         \label{fig:ste_rate_error}
     \end{minipage}
     \hfill
     \begin{minipage}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{sbe_rate_error_plot.png}
-        \captionof{figure}{Specific Balance Energy Rate Error (SBE)}
+        \includegraphics[width=\linewidth]{figures/sbe_rate_error_plot.png}
+        \captionof{figure}{Specific Balance Energy Rate Error}
         \label{fig:sbe_rate_error}
     \end{minipage}
 \end{figure}
@@ -638,15 +650,15 @@ Figure \ref{fig:thrust_output} and Figure \ref{fig:pitch_output} present the thr
     \centering
     \begin{minipage}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{thrust_output_plot.png}
+        \includegraphics[width=\linewidth]{figures/thrust_output_plot.png}
         \captionof{figure}{Thrust Output}
         \label{fig:thrust_output}
     \end{minipage}
     \hfill
     \begin{minipage}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{pitch_output_plot.png}
-        \captionof{figure}{Pitch Output}
+        \includegraphics[width=\linewidth]{figures/pitch_output_plot.png}
+        \captionof{figure}{Pitch Setpoint Output}
         \label{fig:pitch_output}
     \end{minipage}
 \end{figure}
@@ -657,14 +669,14 @@ The TECS gain tuning process is illustrated in Figure \ref{fig:ste_gain}, \ref{f
     \centering
     \begin{minipage}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{ste_gain.png}
+        \includegraphics[width=\linewidth]{figures/ste_gain.png}
         \captionof{figure}{Total Energy Gain}
         \label{fig:ste_gain}
     \end{minipage}
     \hfill
     \begin{minipage}{0.45\textwidth}
         \centering
-        \includegraphics[width=\linewidth]{sbe_gain.png}
+        \includegraphics[width=\linewidth]{figures/sbe_gain.png}
         \captionof{figure}{Balance Energy Gain}
         \label{fig:sbe_gain}
     \end{minipage}
@@ -677,7 +689,7 @@ The neural network-based adaptive TECS gain tuning method was tested under vario
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.8\textwidth]{sensitive_analysis.png}
+    \includegraphics[width=0.8\textwidth]{figures/sensitive_analysis.png}
     \caption{Sensitive Analysis: Neural Network TECS Performance under Different Flight States.}
     \label{fig:sensitive_analysis}
 \end{figure}
